@@ -1,0 +1,5377 @@
+if not game:IsLoaded() then
+	game.Loaded:Wait();
+end
+local Players = game:GetService("Players");
+local RunService = game:GetService("RunService");
+local ReplicatedStorage = game:GetService("ReplicatedStorage");
+local UserInputService = game:GetService("UserInputService");
+local CoreGui = game:GetService("CoreGui");
+local Lighting = game:GetService("Lighting");
+local SoundService = game:GetService("SoundService");
+local Debris = game:GetService("Debris");
+local TweenService = game:GetService("TweenService");
+local HttpService = game:GetService("HttpService");
+local TeleportService = game:GetService("TeleportService");
+local StarterGui = game:GetService("StarterGui");
+local LocalPlayer = Players.LocalPlayer;
+local Camera = workspace.CurrentCamera;
+if setthreadidentity then
+	pcall(setthreadidentity, 8);
+end
+pcall(function()
+	local ok, renv = pcall(getrenv);
+	local smt = ok and renv and renv.setmetatable;
+	if (hookfunction and smt) then
+		local oldSM;
+		oldSM = hookfunction(smt, function(T, M)
+			local FlatIdent_95CAC = 0;
+			while true do
+				if (FlatIdent_95CAC == 0) then
+					if (M and (type(M) == "table") and rawget(M, "__mode")) then
+						local FlatIdent_76979 = 0;
+						local mode;
+						while true do
+							if (FlatIdent_76979 == 0) then
+								mode = rawget(M, "__mode");
+								if ((mode == "kv") or (mode == "v") or (mode == "k")) then
+									local okT, tr = pcall(debug.traceback);
+									tr = (okT and tr) or "";
+									if (tr:find("MiscellaneousController", 1, true) or tr:find("CameraSecurity", 1, true)) then
+										return oldSM({1,2,3}, {});
+									end
+								end
+								break;
+							end
+						end
+					end
+					return oldSM(T, M);
+				end
+			end
+		end);
+	end
+	pcall(function()
+		local FlatIdent_69270 = 0;
+		local oldKick;
+		while true do
+			if (FlatIdent_69270 == 0) then
+				oldKick = nil;
+				oldKick = hookfunction(LocalPlayer.Kick, function(self, ...)
+					if (self == LocalPlayer) then
+						return nil;
+					end
+					return oldKick(self, ...);
+				end);
+				break;
+			end
+		end
+	end);
+end);
+local PS = LocalPlayer:WaitForChild("PlayerScripts");
+local function sr(m)
+	local FlatIdent_6D4CB = 0;
+	local ok;
+	local r;
+	while true do
+		if (FlatIdent_6D4CB == 0) then
+			ok, r = pcall(require, m);
+			return (ok and r) or nil;
+		end
+	end
+end
+local GunItem = sr(PS.Modules.ItemTypes.Gun);
+local Utility = sr(ReplicatedStorage.Modules.Utility);
+local FighterCtrl = sr(PS.Controllers.FighterController);
+local EnumLib = sr(ReplicatedStorage.Modules.EnumLibrary);
+local CameraCtrl = sr(PS.Controllers.CameraController);
+local UseItemRemote = ReplicatedStorage.Remotes.Replication.Fighter.UseItem;
+local VoteRemote = ReplicatedStorage.Remotes.Duels.Vote;
+local StartShootingEnum;
+pcall(function()
+	StartShootingEnum = EnumLib:ToEnum("StartShooting");
+end);
+local AntiBan = {Enabled=true,AutoRejoin=true,NotifyOnKick=true,LastRejoinAttempt=0,RejoinCooldown=5,KickCount=0,LastKickTime=0};
+local CONFIG_DIR = "ElysienV2_Configs";
+local META_FILE = CONFIG_DIR .. "/_meta.json";
+pcall(function()
+	if (makefolder and not (isfolder and isfolder(CONFIG_DIR))) then
+		makefolder(CONFIG_DIR);
+	end
+end);
+local function san(n)
+	local FlatIdent_10BCC = 0;
+	while true do
+		if (0 == FlatIdent_10BCC) then
+			n = tostring(n or "config"):gsub("[^%w_%-%.]", "_");
+			if (#n == 0) then
+				n = "config";
+			end
+			FlatIdent_10BCC = 1;
+		end
+		if (FlatIdent_10BCC == 1) then
+			return n:sub(1, 40);
+		end
+	end
+end
+local function cfgPath(n)
+	return CONFIG_DIR .. "/" .. san(n) .. ".json";
+end
+local function listCfgs()
+	local FlatIdent_2BD95 = 0;
+	local out;
+	while true do
+		if (FlatIdent_2BD95 == 1) then
+			table.sort(out);
+			return out;
+		end
+		if (FlatIdent_2BD95 == 0) then
+			out = {};
+			pcall(function()
+				local FlatIdent_60EA1 = 0;
+				local files;
+				while true do
+					if (FlatIdent_60EA1 == 1) then
+						for _, f in ipairs(files) do
+							local FlatIdent_8F047 = 0;
+							local b;
+							while true do
+								if (FlatIdent_8F047 == 0) then
+									b = f:match("([^/\\]+)%.json$");
+									if (b and (b ~= "_meta")) then
+										table.insert(out, b);
+									end
+									break;
+								end
+							end
+						end
+						break;
+					end
+					if (FlatIdent_60EA1 == 0) then
+						files = listfiles and listfiles(CONFIG_DIR);
+						if not files then
+							return;
+						end
+						FlatIdent_60EA1 = 1;
+					end
+				end
+			end);
+			FlatIdent_2BD95 = 1;
+		end
+	end
+end
+local function saveMeta(n)
+	pcall(function()
+		if writefile then
+			writefile(META_FILE, HttpService:JSONEncode({last=san(n)}));
+		end
+	end);
+end
+local function loadMeta()
+	local FlatIdent_31905 = 0;
+	local out;
+	while true do
+		if (FlatIdent_31905 == 1) then
+			return out;
+		end
+		if (0 == FlatIdent_31905) then
+			out = "default";
+			pcall(function()
+				if (readfile and isfile and isfile(META_FILE)) then
+					local FlatIdent_61B23 = 0;
+					local d;
+					while true do
+						if (FlatIdent_61B23 == 0) then
+							d = HttpService:JSONDecode(readfile(META_FILE));
+							if (d and d.last) then
+								out = d.last;
+							end
+							break;
+						end
+					end
+				end
+			end);
+			FlatIdent_31905 = 1;
+		end
+	end
+end
+local MusicLib = {Mirrors="rbxassetid://83707813531588",["it's like i'm not even here"]="rbxassetid://104759646592993",Kapec="rbxassetid://114124432924781",["MEANT TO BE"]="rbxassetid://126576350082922",["Default Song"]="rbxassetid://107432939350823"};
+local MusicOrder = {"Mirrors","it's like i'm not even here","Kapec","MEANT TO BE","Default Song"};
+local T = {Ragebot=true,DesyncRage=true,SilentAim=true,VoidSpam=true,Wallbang=true,NoRecoil=true,RapidFire=true,NoSpread=true,InstantADS=true,AntiKatana=true,Triggerbot=false,Aimbot=false,AimbotShowFOV=false,StickyAim=true,HvHMode=true,FarCheck=true,PositionVerify=true,DesyncResolver=true,StrictVerify=true,MusicEnabled=false,MusicLoop=true,GlitchDance=false,AntiAim=true,InfiniteJump=false,Fly=false,Noclip=false,ThirdPerson=false,SlideBoost=false,InfiniteDoubleJump=false,AntiFlash=true,AntiSmoke=false,AutoRespawn=false,Freecam=false,UnlockMovement=false,Visuals=true,FOVCircleVisible=true,FOVColoured=true,SkeletonESP=true,ShowTargetESP=true,ESPBox=true,ESPName=true,ESPHealth=true,ESPDistance=false,ESPWeapon=false,ESPTracer=false,ESPChams=false,ShowRagebotStatus=true,XRay=false,Crosshair=false,BulletTracers=false,CustomHitSound=true,CustomShootSound=true,CustomDeathSound=true,SkyboxOverride=true,Weather=false,Bloom=false,SunRays=false,Atmosphere=false,ColorCorrection=false,CustomFog=false,AutoBan=false,CollectDrops=true,ChatSpam=false,AutoQueue=false,ProjectileTP=false,NameSpoofer=false,DeviceSpoofer=false};
+local O = {TargetPart="Head",SilentAimPart="Head",SilentAimHitChance=100,AimbotPart="Head",AimbotFOV=150,AimbotSmooth=10,TriggerbotDelay=0,FakeDistance=3,BanFirst="Riot Shield",BanSecond="Katana",AAMode="Spinbot",FOVRadius=150,FOVColor=Color3.fromRGB(0, 180, 255),FOVFilled=true,MaxAcquisitionDistance=300,SelectedSky="Soft Pink",SelectedWeather="Rain",WalkSpeed=16,JumpPower=50,FlySpeed=50,ChatSpamText="gg",SpoofName="Player",CrosshairColor=Color3.fromRGB(0, 255, 100),CrosshairLength=15,CrosshairThickness=2,TracerColor=Color3.fromRGB(97, 131, 255),TracerDuration=0.3,FarCheckDistance=350,VelocityLead=9,DesyncThreshold=6,VerifySamples=4,VerifyTolerance=8,HvHAngleBonus=250,HvHCloseBonus=120,HvHLowHPBonus=60,HvHDesyncBonus=150,MusicTrack="Mirrors",MusicVolume=50,RejoinCooldown=5,WallbangRange=200,WallbangCooldown=4};
+local PUBLIC_CONFIGS = {Legit={Ragebot=false,DesyncRage=false,SilentAim=true,VoidSpam=false,Wallbang=false,NoRecoil=true,RapidFire=false,AntiKatana=true,Fly=false,Noclip=false,AntiAim=false,Visuals=true,ESPBox=false,ESPName=true,ESPHealth=true,SilentAimHitChance=60,HvHMode=false,PositionVerify=false,Aimbot=false},Rage={Ragebot=true,DesyncRage=true,SilentAim=true,VoidSpam=true,Wallbang=true,NoRecoil=true,RapidFire=true,AntiKatana=true,AntiAim=true,Visuals=true,ESPBox=true,SkeletonESP=true,FOVCircleVisible=true,SilentAimHitChance=100,MaxAcquisitionDistance=300,HvHMode=true,FarCheck=true,PositionVerify=true,DesyncResolver=true,StrictVerify=true,Aimbot=true},["Public Safe"]={Ragebot=false,DesyncRage=false,SilentAim=true,VoidSpam=false,Wallbang=false,NoRecoil=true,RapidFire=false,AntiKatana=true,AntiAim=false,Visuals=true,ESPBox=true,SilentAimHitChance=75,MaxAcquisitionDistance=300,Triggerbot=false,HvHMode=true,PositionVerify=true,StrictVerify=true,Aimbot=false},["Melee Only"]={SilentAim=false,Ragebot=true,DesyncRage=true,AntiKatana=true,Visuals=false,MaxAcquisitionDistance=300,HvHMode=true,FarCheck=true,PositionVerify=true,Aimbot=false},["HvH Sweat"]={Ragebot=true,DesyncRage=true,SilentAim=true,VoidSpam=true,Wallbang=true,NoRecoil=true,RapidFire=true,AntiKatana=true,AntiAim=true,Visuals=true,ESPBox=true,SkeletonESP=true,FOVCircleVisible=true,SilentAimHitChance=100,MaxAcquisitionDistance=500,HvHMode=true,FarCheck=true,PositionVerify=true,DesyncResolver=true,StrictVerify=true,FarCheckDistance=500,VelocityLead=12,DesyncThreshold=4,Aimbot=true,AimbotSmooth=5}};
+local S = {Active=true,LockedTarget=nil,NextShootAt=0,IsDeflecting={},RagebotStatusText="Elysien v2: Idle",OriginalPosition=nil,FakeYaw=0,VoidSeedX=math.random(999995, 1000005),VoidSeedZ=math.random(999995, 1000005),AntiBanLastKick=0,AntiBanTripwire=false,LastAutoSave=0};
+local Audio = {HitSound="rbxassetid://140462043853173",ShootSound="rbxassetid://128009361207724",DeathA="rbxassetid://8561505457",DeathB="rbxassetid://135097031120155"};
+local function notifyUser(title, text, duration)
+	local FlatIdent_E652 = 0;
+	while true do
+		if (0 == FlatIdent_E652) then
+			pcall(function()
+				StarterGui:SetCore("SendNotification", {Title=(title or "Elysien"),Text=(text or ""),Duration=(duration or 4)});
+			end);
+			S.RagebotStatusText = tostring(title) .. ": " .. tostring(text);
+			break;
+		end
+	end
+end
+local function attemptRejoin()
+	if not AntiBan.AutoRejoin then
+		return;
+	end
+	local now = os.time();
+	if ((now - AntiBan.LastRejoinAttempt) < AntiBan.RejoinCooldown) then
+		return;
+	end
+	AntiBan.LastRejoinAttempt = now;
+	local placeId, jobId = game.PlaceId, game.JobId;
+	notifyUser("Anti-Ban", "킥 감지 → 재접속 (" .. AntiBan.KickCount .. "회)", 5);
+	task.spawn(function()
+		local FlatIdent_27957 = 0;
+		while true do
+			if (0 == FlatIdent_27957) then
+				task.wait(0.5);
+				pcall(function()
+					if (jobId and (jobId ~= "")) then
+						TeleportService:TeleportToPlaceInstance(placeId, jobId, LocalPlayer);
+					else
+						TeleportService:Teleport(placeId, LocalPlayer);
+					end
+				end);
+				break;
+			end
+		end
+	end);
+end
+pcall(function()
+	if hookmetamethod then
+		local FlatIdent_77C29 = 0;
+		local oldNamecall;
+		while true do
+			if (FlatIdent_77C29 == 0) then
+				oldNamecall = nil;
+				oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+					local FlatIdent_703C8 = 0;
+					local method;
+					while true do
+						if (FlatIdent_703C8 == 0) then
+							method = (getnamecallmethod and getnamecallmethod()) or "";
+							if (AntiBan.Enabled and ((method == "Kick") or (method == "kick")) and ((self == LocalPlayer) or (self == Players))) then
+								local FlatIdent_1B51D = 0;
+								while true do
+									if (FlatIdent_1B51D == 1) then
+										if AntiBan.NotifyOnKick then
+											notifyUser("Anti-Ban", "Kick 차단 (" .. AntiBan.KickCount .. "회)", 3);
+										end
+										if AntiBan.AutoRejoin then
+											task.spawn(attemptRejoin);
+										end
+										FlatIdent_1B51D = 2;
+									end
+									if (FlatIdent_1B51D == 2) then
+										return nil;
+									end
+									if (FlatIdent_1B51D == 0) then
+										AntiBan.KickCount += 1
+										AntiBan.LastKickTime = tick();
+										FlatIdent_1B51D = 1;
+									end
+								end
+							end
+							FlatIdent_703C8 = 1;
+						end
+						if (FlatIdent_703C8 == 1) then
+							return oldNamecall(self, ...);
+						end
+					end
+				end));
+				break;
+			end
+		end
+	end
+end);
+pcall(function()
+	LocalPlayer.OnTeleport:Connect(function(state)
+		if ((state == Enum.TeleportState.Failed) and AntiBan.Enabled and AntiBan.AutoRejoin) then
+			notifyUser("Anti-Ban", "텔레포트 실패 감지", 3);
+			task.spawn(attemptRejoin);
+		end
+	end);
+end);
+task.spawn(function()
+	task.wait(1.5);
+	AntiBan.Enabled = true;
+	AntiBan.AutoRejoin = true;
+	AntiBan.RejoinCooldown = O.RejoinCooldown or 5;
+	pcall(function()
+		StarterGui:SetCore("SendNotification", {Title="🛡 Anti-Ban Active",Text="킥 감지 + 자동 재접속 활성화됨",Duration=5});
+	end);
+	S.RagebotStatusText = "🛡 Anti-Ban: ACTIVE";
+	while true do
+		local FlatIdent_380E8 = 0;
+		while true do
+			if (FlatIdent_380E8 == 0) then
+				task.wait(30);
+				if (AntiBan.Enabled and (AntiBan.LastKickTime > 0) and ((tick() - AntiBan.LastKickTime) < 5)) then
+					pcall(function()
+						StarterGui:SetCore("SendNotification", {Title="🛡 Anti-Ban",Text=("킥 방어: " .. AntiBan.KickCount .. "회"),Duration=3});
+					end);
+				end
+				break;
+			end
+		end
+	end
+end);
+local MusicPlayer = {Sound=nil,CurrentTrack=nil};
+local function getMusicSound()
+	if (MusicPlayer.Sound and MusicPlayer.Sound.Parent) then
+		return MusicPlayer.Sound;
+	end
+	local s = Instance.new("Sound");
+	s.Name = "__ElysienMusic";
+	s.Volume = math.clamp((O.MusicVolume or 50) / 100, 0, 1);
+	s.Looped = T.MusicLoop;
+	s.Parent = SoundService;
+	MusicPlayer.Sound = s;
+	return s;
+end
+local function playMusic(trackName)
+	trackName = trackName or O.MusicTrack;
+	local id = MusicLib[trackName];
+	if not id then
+		return;
+	end
+	local s = getMusicSound();
+	pcall(function()
+		s:Stop();
+	end);
+	s.SoundId = id;
+	s.Volume = math.clamp((O.MusicVolume or 50) / 100, 0, 1);
+	s.Looped = T.MusicLoop;
+	s.TimePosition = 0;
+	pcall(function()
+		s:Play();
+	end);
+	MusicPlayer.CurrentTrack = trackName;
+end
+local function stopMusic()
+	if MusicPlayer.Sound then
+		pcall(function()
+			MusicPlayer.Sound:Stop();
+		end);
+	end
+end
+local function setMusicVolume(vol)
+	O.MusicVolume = math.clamp(vol or 50, 0, 100);
+	if MusicPlayer.Sound then
+		MusicPlayer.Sound.Volume = O.MusicVolume / 100;
+	end
+end
+local SkyDB = {["Soft Pink"]={600830446,600831635,600832720,600886090,600833862,600835177,Color3.fromRGB(255, 192, 203),14},["Magenta Twilight"]={264908339,264907909,264909420,264909758,264908886,264907379,Color3.fromRGB(139, 0, 139),18},["Neon Purple"]={149397697,149397702,149397692,149397688,149397684,149397686,Color3.fromRGB(75, 0, 130),0},["Pastel Blue"]={591058823,591059642,591059876,591057625,591057861,591058104,Color3.fromRGB(173, 216, 230),12},["Cotton Candy"]={1417494030,1417494146,1417494253,1417494402,1417494499,1417494643,Color3.fromRGB(255, 182, 193),6},["Cyberpunk Red"]={401664839,401664862,401664960,401664881,401664901,401664936,Color3.fromRGB(255, 0, 50),17},["Sunset Gold"]={264909420,264907909,264908339,264908886,264909758,264907379,Color3.fromRGB(255, 215, 0),17.5},["Solid Dark"]={0,0,0,0,0,0,Color3.fromRGB(15, 15, 15),0},["Sakura Blossom"]={600830446,1417494146,600832720,1417494402,600833862,1417494643,Color3.fromRGB(255, 180, 200),7},Heaven={591058823,591059642,591059876,591057625,591057861,591058104,Color3.fromRGB(245, 245, 255),12},Nebula={149397697,149397702,149397692,149397688,149397684,149397686,Color3.fromRGB(85, 45, 125),0},["Deep Space"]={149397684,149397686,149397688,149397692,149397697,149397702,Color3.fromRGB(20, 25, 55),0}};
+local function skyId(id)
+	return ((id == 0) and "") or ("rbxassetid://" .. tostring(id));
+end
+local function applySkybox(name)
+	local FlatIdent_66799 = 0;
+	local d;
+	local sky;
+	while true do
+		if (FlatIdent_66799 == 3) then
+			Lighting.FogColor = d[7];
+			Lighting.ClockTime = d[8];
+			FlatIdent_66799 = 4;
+		end
+		if (FlatIdent_66799 == 0) then
+			if not T.SkyboxOverride then
+				return;
+			end
+			d = SkyDB[name] or SkyDB["Soft Pink"];
+			FlatIdent_66799 = 1;
+		end
+		if (FlatIdent_66799 == 1) then
+			sky = Lighting:FindFirstChild("__AxiomSky");
+			if not sky then
+				local FlatIdent_7909D = 0;
+				while true do
+					if (FlatIdent_7909D == 1) then
+						sky.Parent = Lighting;
+						break;
+					end
+					if (FlatIdent_7909D == 0) then
+						sky = Instance.new("Sky");
+						sky.Name = "__AxiomSky";
+						FlatIdent_7909D = 1;
+					end
+				end
+			end
+			FlatIdent_66799 = 2;
+		end
+		if (FlatIdent_66799 == 2) then
+			sky.SkyboxBk, sky.SkyboxDn, sky.SkyboxFt = skyId(d[1]), skyId(d[2]), skyId(d[3]);
+			sky.SkyboxLf, sky.SkyboxRt, sky.SkyboxUp = skyId(d[4]), skyId(d[5]), skyId(d[6]);
+			FlatIdent_66799 = 3;
+		end
+		if (FlatIdent_66799 == 4) then
+			Lighting.Ambient = d[7]:Lerp(Color3.new(0, 0, 0), 0.5);
+			Lighting.OutdoorAmbient = d[7]:Lerp(Color3.new(0, 0, 0), 0.4);
+			break;
+		end
+	end
+end
+Lighting.ChildAdded:Connect(function(c)
+	if (T.SkyboxOverride and c:IsA("Sky") and (c.Name ~= "__AxiomSky")) then
+		task.defer(function()
+			applySkybox(O.SelectedSky);
+		end);
+	end
+end);
+local function playAudio(id, vol)
+	local FlatIdent_4CC24 = 0;
+	local s;
+	while true do
+		if (FlatIdent_4CC24 == 1) then
+			s.SoundId = id;
+			s.Volume = vol or 0.6;
+			FlatIdent_4CC24 = 2;
+		end
+		if (FlatIdent_4CC24 == 2) then
+			s.Parent = SoundService;
+			s:Play();
+			FlatIdent_4CC24 = 3;
+		end
+		if (FlatIdent_4CC24 == 3) then
+			Debris:AddItem(s, 4);
+			break;
+		end
+		if (FlatIdent_4CC24 == 0) then
+			if (not id or (id == "")) then
+				return;
+			end
+			s = Instance.new("Sound");
+			FlatIdent_4CC24 = 1;
+		end
+	end
+end
+local function isLobby()
+	local FlatIdent_5B4A8 = 0;
+	local pg;
+	local m;
+	local mf;
+	local lb;
+	while true do
+		if (FlatIdent_5B4A8 == 0) then
+			pg = LocalPlayer:FindFirstChild("PlayerGui");
+			m = pg and pg:FindFirstChild("MainGui");
+			FlatIdent_5B4A8 = 1;
+		end
+		if (FlatIdent_5B4A8 == 2) then
+			return (lb and lb:FindFirstChild("Currency") and lb.Currency.Visible) or false;
+		end
+		if (FlatIdent_5B4A8 == 1) then
+			mf = m and m:FindFirstChild("MainFrame");
+			lb = mf and mf:FindFirstChild("Lobby");
+			FlatIdent_5B4A8 = 2;
+		end
+	end
+end
+local function isEnemy(p)
+	if (p == LocalPlayer) then
+		return false;
+	end
+	local a, b = LocalPlayer:GetAttribute("TeamID"), p:GetAttribute("TeamID");
+	if ((a == nil) or (b == nil)) then
+		return true;
+	end
+	return b ~= a;
+end
+local function isProtected(c)
+	local FlatIdent_5B2CE = 0;
+	while true do
+		if (FlatIdent_5B2CE == 1) then
+			if ((c:GetAttribute("SpawnProtection") == true) or (c:GetAttribute("Invincible") == true)) then
+				return true;
+			end
+			return false;
+		end
+		if (FlatIdent_5B2CE == 0) then
+			if not c then
+				return true;
+			end
+			if c:FindFirstChild("InvincibilityParticles", true) then
+				return true;
+			end
+			FlatIdent_5B2CE = 1;
+		end
+	end
+end
+local function getEnemyWeapon(p)
+	local FlatIdent_2388 = 0;
+	local vms;
+	while true do
+		if (1 == FlatIdent_2388) then
+			return "";
+		end
+		if (FlatIdent_2388 == 0) then
+			vms = workspace:FindFirstChild("ViewModels");
+			if vms then
+				for _, m in ipairs(vms:GetChildren()) do
+					if (m:IsA("Model") and m.Name:find(p.Name, 1, true)) then
+						return m.Name:lower();
+					end
+				end
+			end
+			FlatIdent_2388 = 1;
+		end
+	end
+end
+local function checkKatana(p)
+	if not T.AntiKatana then
+		return false;
+	end
+	local e = S.IsDeflecting[p.UserId];
+	if (e and (e > tick())) then
+		return true;
+	end
+	local w = getEnemyWeapon(p);
+	if (w:find("katana") or w:find("riot") or w:find("shield")) then
+		return true;
+	end
+	return false;
+end
+local function getObjId()
+	local FlatIdent_69253 = 0;
+	local it;
+	local ok;
+	local id;
+	local ok2;
+	local id2;
+	while true do
+		if (FlatIdent_69253 == 3) then
+			return (ok2 and id2) or nil;
+		end
+		if (1 == FlatIdent_69253) then
+			if not it then
+				return nil;
+			end
+			ok, id = pcall(function()
+				return it:Get("ObjectID");
+			end);
+			FlatIdent_69253 = 2;
+		end
+		if (FlatIdent_69253 == 2) then
+			if (ok and id) then
+				return id;
+			end
+			ok2, id2 = pcall(function()
+				return it.Data and it.Data.ObjectID;
+			end);
+			FlatIdent_69253 = 3;
+		end
+		if (0 == FlatIdent_69253) then
+			if not (FighterCtrl and FighterCtrl.LocalFighter) then
+				return nil;
+			end
+			it = FighterCtrl.LocalFighter.EquippedItem;
+			FlatIdent_69253 = 1;
+		end
+	end
+end
+local function getRoot(c)
+	return c and c:FindFirstChild("HumanoidRootPart");
+end
+local function getHum(c)
+	return c and c:FindFirstChildOfClass("Humanoid");
+end
+local PosHistory = setmetatable({}, {__mode="k"});
+local VerifyState = {};
+task.spawn(function()
+	while true do
+		local FlatIdent_DFF4 = 0;
+		local now;
+		while true do
+			if (FlatIdent_DFF4 == 0) then
+				RunService.Heartbeat:Wait();
+				if (not T.FarCheck and not T.DesyncResolver) then
+					continue;
+				end
+				FlatIdent_DFF4 = 1;
+			end
+			if (FlatIdent_DFF4 == 1) then
+				now = tick();
+				for _, plr in ipairs(Players:GetPlayers()) do
+					if ((plr ~= LocalPlayer) and plr.Character) then
+						local hrp = plr.Character:FindFirstChild("HumanoidRootPart");
+						if hrp then
+							local FlatIdent_1B881 = 0;
+							local h;
+							while true do
+								if (FlatIdent_1B881 == 1) then
+									table.insert(h, {p=hrp.Position,t=now,v=(hrp.AssemblyLinearVelocity or hrp.Velocity)});
+									while (#h > 0) and ((now - h[1].t) > 0.25) do
+										table.remove(h, 1);
+									end
+									break;
+								end
+								if (FlatIdent_1B881 == 0) then
+									h = PosHistory[plr.Character];
+									if not h then
+										local FlatIdent_1FC27 = 0;
+										while true do
+											if (FlatIdent_1FC27 == 0) then
+												h = {};
+												PosHistory[plr.Character] = h;
+												break;
+											end
+										end
+									end
+									FlatIdent_1B881 = 1;
+								end
+							end
+						end
+					end
+				end
+				break;
+			end
+		end
+	end
+end);
+local function isDesyncing(char)
+	if not T.DesyncResolver then
+		return false, 0;
+	end
+	local h = PosHistory[char];
+	if (not h or (#h < 3)) then
+		return false, 0;
+	end
+	local avg = Vector3.zero;
+	for _, s in ipairs(h) do
+		avg += s.p
+	end
+	avg /= #h
+	local var = 0;
+	for _, s in ipairs(h) do
+		var += (s.p - avg).Magnitude
+	end
+	var /= #h
+	return var > O.DesyncThreshold, var;
+end
+local function resolvePosition(char, part)
+	local FlatIdent_284EA = 0;
+	local pos;
+	local myHrp;
+	local dist;
+	while true do
+		if (FlatIdent_284EA == 0) then
+			if (not char or not part) then
+				return nil;
+			end
+			pos = part.Position;
+			FlatIdent_284EA = 1;
+		end
+		if (FlatIdent_284EA == 3) then
+			if (T.FarCheck and (dist > O.FarCheckDistance)) then
+				local FlatIdent_91B54 = 0;
+				local hrp;
+				while true do
+					if (FlatIdent_91B54 == 0) then
+						hrp = getRoot(char);
+						if hrp then
+							local FlatIdent_6679B = 0;
+							local v;
+							while true do
+								if (FlatIdent_6679B == 0) then
+									v = hrp.AssemblyLinearVelocity or hrp.Velocity;
+									if (v and (v.Magnitude > 1)) then
+										local leadScale = math.clamp(dist / 500, 0.5, 2);
+										pos += (v * (O.VelocityLead / 100) * leadScale)
+									end
+									break;
+								end
+							end
+						end
+						break;
+					end
+				end
+			end
+			return pos;
+		end
+		if (FlatIdent_284EA == 2) then
+			dist = (pos - myHrp.Position).Magnitude;
+			if T.DesyncResolver then
+				local FlatIdent_86900 = 0;
+				local desync;
+				while true do
+					if (FlatIdent_86900 == 0) then
+						desync = isDesyncing(char);
+						if desync then
+							local h = PosHistory[char];
+							local avg = Vector3.zero;
+							for _, s in ipairs(h) do
+								avg += s.p
+							end
+							avg /= #h
+							local curRoot = getRoot(char);
+							if curRoot then
+								local partOffset = part.Position - curRoot.Position;
+								pos = avg + partOffset;
+							else
+								pos = avg;
+							end
+						end
+						break;
+					end
+				end
+			end
+			FlatIdent_284EA = 3;
+		end
+		if (FlatIdent_284EA == 1) then
+			myHrp = getRoot(LocalPlayer.Character);
+			if not myHrp then
+				return pos;
+			end
+			FlatIdent_284EA = 2;
+		end
+	end
+end
+local function verifyTargetPosition(char, part)
+	local FlatIdent_63AE4 = 0;
+	local hrp;
+	local samples;
+	local hits;
+	local ok;
+	while true do
+		if (FlatIdent_63AE4 == 0) then
+			if not T.PositionVerify then
+				return true;
+			end
+			if (not char or not part) then
+				return false;
+			end
+			FlatIdent_63AE4 = 1;
+		end
+		if (FlatIdent_63AE4 == 3) then
+			for i = 1, samples do
+				local h = PosHistory[char];
+				if (h and (#h > 0)) then
+					local FlatIdent_4A248 = 0;
+					local recent;
+					while true do
+						if (0 == FlatIdent_4A248) then
+							recent = h[#h];
+							if ((recent.p - hrp.Position).Magnitude < O.VerifyTolerance) then
+								hits += 1
+							end
+							break;
+						end
+					end
+				else
+					hits += 1
+				end
+				task.wait(0.012);
+			end
+			ok = hits >= math.max(1, math.floor(samples * 0.5));
+			FlatIdent_63AE4 = 4;
+		end
+		if (FlatIdent_63AE4 == 4) then
+			VerifyState[char] = {ok=ok,at=tick(),hits=hits,total=samples};
+			return ok;
+		end
+		if (FlatIdent_63AE4 == 2) then
+			samples = math.max(1, O.VerifySamples);
+			hits = 0;
+			FlatIdent_63AE4 = 3;
+		end
+		if (1 == FlatIdent_63AE4) then
+			hrp = getRoot(char);
+			if not hrp then
+				return false;
+			end
+			FlatIdent_63AE4 = 2;
+		end
+	end
+end
+local function hvHScore(plr)
+	local FlatIdent_82923 = 0;
+	local myChar;
+	local myHrp;
+	local char;
+	local hrp;
+	local hum;
+	local dist;
+	local score;
+	local look;
+	local toMe;
+	local dot;
+	local hpPct;
+	while true do
+		if (FlatIdent_82923 == 1) then
+			char = plr.Character;
+			hrp, hum = getRoot(char), getHum(char);
+			if (not hrp or not hum or (hum.Health <= 0)) then
+				return -math.huge;
+			end
+			dist = (hrp.Position - myHrp.Position).Magnitude;
+			FlatIdent_82923 = 2;
+		end
+		if (FlatIdent_82923 == 2) then
+			score = -dist;
+			look = hrp.CFrame.LookVector;
+			toMe = (myHrp.Position - hrp.Position).Unit;
+			dot = look:Dot(toMe);
+			FlatIdent_82923 = 3;
+		end
+		if (FlatIdent_82923 == 0) then
+			if not T.HvHMode then
+				return 0;
+			end
+			myChar = LocalPlayer.Character;
+			myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart");
+			if not myHrp then
+				return -math.huge;
+			end
+			FlatIdent_82923 = 1;
+		end
+		if (3 == FlatIdent_82923) then
+			if (dot > 0.75) then
+				score += O.HvHAngleBonus
+			elseif (dot > 0.4) then
+				score += (O.HvHAngleBonus * 0.4)
+			end
+			if (dist < 40) then
+				score += O.HvHCloseBonus
+			elseif (dist < 100) then
+				score += (O.HvHCloseBonus * 0.5)
+			end
+			hpPct = hum.Health / math.max(hum.MaxHealth, 1);
+			if (hpPct < 0.5) then
+				score += (O.HvHLowHPBonus * (1 - hpPct))
+			end
+			FlatIdent_82923 = 4;
+		end
+		if (FlatIdent_82923 == 4) then
+			if (T.DesyncResolver and isDesyncing(char)) then
+				score += O.HvHDesyncBonus
+			end
+			return score;
+		end
+	end
+end
+local function getSticky()
+	if (S.LockedTarget and S.LockedTarget.Character) then
+		local FlatIdent_956D = 0;
+		local char;
+		local hum;
+		local hrp;
+		while true do
+			if (FlatIdent_956D == 1) then
+				if (hum and (hum.Health > 0) and hrp and not isProtected(char)) then
+					if T.HvHMode then
+						local FlatIdent_512FF = 0;
+						local s;
+						while true do
+							if (FlatIdent_512FF == 0) then
+								s = hvHScore(S.LockedTarget);
+								if (s > -math.huge) then
+									return S.LockedTarget;
+								end
+								break;
+							end
+						end
+					else
+						return S.LockedTarget;
+					end
+				end
+				S.LockedTarget = nil;
+				break;
+			end
+			if (FlatIdent_956D == 0) then
+				char = S.LockedTarget.Character;
+				hum, hrp = getHum(char), getRoot(char);
+				FlatIdent_956D = 1;
+			end
+		end
+	end
+	local best, bestScore = nil, -math.huge;
+	local mouse = UserInputService:GetMouseLocation();
+	local myHrp = getRoot(LocalPlayer.Character);
+	local vp = Camera.ViewportSize;
+	local cx, cy = vp.X / 2, vp.Y / 2;
+	local useFov = T.Visuals and T.FOVCircleVisible;
+	for _, plr in ipairs(Players:GetPlayers()) do
+		local FlatIdent_829F9 = 0;
+		local char;
+		local hrp;
+		local hum;
+		local sp;
+		local vis;
+		local origin;
+		local screenD;
+		local score;
+		while true do
+			if (FlatIdent_829F9 == 3) then
+				if (useFov and (screenD > O.FOVRadius)) then
+					continue;
+				end
+				score = nil;
+				if T.HvHMode then
+					score = hvHScore(plr);
+					if (score <= -math.huge) then
+						continue;
+					end
+				else
+					score = -screenD;
+				end
+				if (score > bestScore) then
+					local FlatIdent_835BC = 0;
+					while true do
+						if (0 == FlatIdent_835BC) then
+							bestScore = score;
+							best = plr;
+							break;
+						end
+					end
+				end
+				break;
+			end
+			if (FlatIdent_829F9 == 0) then
+				if not isEnemy(plr) then
+					continue;
+				end
+				char = plr.Character;
+				if not char then
+					continue;
+				end
+				hrp, hum = getRoot(char), getHum(char);
+				FlatIdent_829F9 = 1;
+			end
+			if (FlatIdent_829F9 == 2) then
+				sp, vis = Camera:WorldToViewportPoint(hrp.Position);
+				if not vis then
+					continue;
+				end
+				origin = (useFov and mouse) or Vector2.new(cx, cy);
+				screenD = (origin - Vector2.new(sp.X, sp.Y)).Magnitude;
+				FlatIdent_829F9 = 3;
+			end
+			if (FlatIdent_829F9 == 1) then
+				if (not hrp or not hum or (hum.Health <= 0)) then
+					continue;
+				end
+				if isProtected(char) then
+					continue;
+				end
+				if checkKatana(plr) then
+					continue;
+				end
+				if (myHrp and ((hrp.Position - myHrp.Position).Magnitude > O.MaxAcquisitionDistance)) then
+					continue;
+				end
+				FlatIdent_829F9 = 2;
+			end
+		end
+	end
+	S.LockedTarget = best;
+	return best;
+end
+local function buildShot(originPos, part)
+	local look = CFrame.lookAt(originPos, part.Position);
+	local lX, lY, lZ = look:ToOrientation();
+	local orig = {[utf8.char(0)]=originPos.X,[utf8.char(1)]=originPos.Y,[utf8.char(2)]=originPos.Z,[utf8.char(3)]=lX,[utf8.char(4)]=lY,[utf8.char(5)]=lZ};
+	local rel = part.CFrame:ToObjectSpace(CFrame.new(part.Position));
+	local rX, rY, rZ = rel:ToOrientation();
+	return {[utf8.char(1)]={[utf8.char(0)]=orig,[utf8.char(1)]=orig,[utf8.char(2)]=part,[utf8.char(3)]={[utf8.char(0)]=rel.X,[utf8.char(1)]=rel.Y,[utf8.char(2)]=rel.Z,[utf8.char(3)]=rX,[utf8.char(4)]=rY,[utf8.char(5)]=rZ}}};
+end
+if (GunItem and StartShootingEnum) then
+	local oldShoot = GunItem.StartShooting;
+	GunItem.StartShooting = function(self, ...)
+		local FlatIdent_527C6 = 0;
+		local res;
+		local cf;
+		local cd;
+		local tp;
+		local char;
+		local part;
+		local resolvedPos;
+		local myHrp;
+		local sPos;
+		local look;
+		local lX;
+		local lY;
+		local lZ;
+		local orig;
+		local rel;
+		local rX;
+		local rY;
+		local rZ;
+		while true do
+			if (FlatIdent_527C6 == 1) then
+				if isLobby() then
+					return unpack(res);
+				end
+				if (math.random(1, 100) > O.SilentAimHitChance) then
+					return unpack(res);
+				end
+				cd = nil;
+				for i = 1, #res do
+					if (type(res[i]) == "table") then
+						cd = res[i];
+						break;
+					end
+				end
+				FlatIdent_527C6 = 2;
+			end
+			if (FlatIdent_527C6 == 2) then
+				if not cd then
+					return unpack(res);
+				end
+				tp = getSticky();
+				if (not tp or not tp.Character or checkKatana(tp) or isProtected(tp.Character)) then
+					return unpack(res);
+				end
+				char = tp.Character;
+				FlatIdent_527C6 = 3;
+			end
+			if (FlatIdent_527C6 == 5) then
+				orig = {[utf8.char(0)]=sPos.X,[utf8.char(1)]=sPos.Y,[utf8.char(2)]=sPos.Z,[utf8.char(3)]=lX,[utf8.char(4)]=lY,[utf8.char(5)]=lZ};
+				rel = part.CFrame:ToObjectSpace(CFrame.new(part.Position));
+				rX, rY, rZ = rel:ToOrientation();
+				rawset(cd, utf8.char(0), orig);
+				FlatIdent_527C6 = 6;
+			end
+			if (4 == FlatIdent_527C6) then
+				myHrp = getRoot(LocalPlayer.Character);
+				sPos = (myHrp and myHrp.Position) or Camera.CFrame.Position;
+				look = CFrame.new(sPos, resolvedPos);
+				lX, lY, lZ = look:ToOrientation();
+				FlatIdent_527C6 = 5;
+			end
+			if (FlatIdent_527C6 == 6) then
+				rawset(cd, utf8.char(1), orig);
+				rawset(cd, utf8.char(2), part);
+				rawset(cd, utf8.char(3), {[utf8.char(0)]=rel.X,[utf8.char(1)]=rel.Y,[utf8.char(2)]=rel.Z,[utf8.char(3)]=rX,[utf8.char(4)]=rY,[utf8.char(5)]=rZ});
+				return unpack(res);
+			end
+			if (FlatIdent_527C6 == 3) then
+				part = char:FindFirstChild(O.SilentAimPart) or char:FindFirstChild("HitboxHeadSmall") or char:FindFirstChild("HitboxHead") or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart");
+				if not part then
+					return unpack(res);
+				end
+				if (T.StrictVerify and T.PositionVerify) then
+					local FlatIdent_1D701 = 0;
+					local vs;
+					while true do
+						if (FlatIdent_1D701 == 0) then
+							vs = VerifyState[char];
+							if (not vs or ((tick() - vs.at) > 0.15)) then
+								if not verifyTargetPosition(char, part) then
+									return unpack(res);
+								end
+							elseif not vs.ok then
+								return unpack(res);
+							end
+							break;
+						end
+					end
+				end
+				resolvedPos = resolvePosition(char, part) or part.Position;
+				FlatIdent_527C6 = 4;
+			end
+			if (FlatIdent_527C6 == 0) then
+				res = {oldShoot(self, ...)};
+				cf = self and (rawget(self, "ClientFighter") or self.ClientFighter);
+				if (cf and cf.IsLocalPlayer) then
+					local FlatIdent_1DFAF = 0;
+					while true do
+						if (FlatIdent_1DFAF == 0) then
+							if (T.NoRecoil and self.Info) then
+								rawset(self.Info, "ShootRecoil", 0);
+								rawset(self.Info, "ShootSpread", 0);
+								rawset(self.Info, "ProjectileSpeed", 999999);
+							end
+							if (T.RapidFire and self.Info) then
+								local FlatIdent_1E4CB = 0;
+								while true do
+									if (FlatIdent_1E4CB == 0) then
+										rawset(self.Info, "ShootCooldown", 0);
+										rawset(self.Info, "QuickShotCooldown", 0);
+										break;
+									end
+								end
+							end
+							FlatIdent_1DFAF = 1;
+						end
+						if (FlatIdent_1DFAF == 1) then
+							if T.CustomShootSound then
+								playAudio(Audio.ShootSound, 0.55);
+							end
+							break;
+						end
+					end
+				end
+				if (not T.SilentAim or not (cf and cf.IsLocalPlayer)) then
+					return unpack(res);
+				end
+				FlatIdent_527C6 = 1;
+			end
+		end
+	end;
+end
+task.spawn(function()
+	pcall(function()
+		local FlatIdent_5077 = 0;
+		local vm;
+		while true do
+			if (FlatIdent_5077 == 0) then
+				vm = sr(PS.Modules.ClientReplicatedClasses.ClientFighter.ClientItem.ClientViewModel);
+				if (vm and (type(vm.PlayHitmarkerSound) == "function")) then
+					local FlatIdent_6EF7B = 0;
+					local old;
+					while true do
+						if (FlatIdent_6EF7B == 0) then
+							old = vm.PlayHitmarkerSound;
+							vm.PlayHitmarkerSound = function(self, c, d, ...)
+								local FlatIdent_5CA49 = 0;
+								while true do
+									if (FlatIdent_5CA49 == 0) then
+										if T.CustomHitSound then
+											playAudio(Audio.HitSound, 0.65);
+										end
+										return old(self, c, d, ...);
+									end
+								end
+							end;
+							break;
+						end
+					end
+				end
+				break;
+			end
+		end
+	end);
+end);
+task.spawn(function()
+	pcall(function()
+		local CE = sr(PS.Modules.ClientReplicatedClasses.ClientEntity);
+		if (CE and CE._PlayFinisher) then
+			local FlatIdent_6C34 = 0;
+			local old;
+			while true do
+				if (0 == FlatIdent_6C34) then
+					old = CE._PlayFinisher;
+					CE._PlayFinisher = function(self, name, ...)
+						local FlatIdent_14716 = 0;
+						local f;
+						local p;
+						while true do
+							if (1 == FlatIdent_14716) then
+								if (p and (p ~= LocalPlayer) and tostring(name):lower():find("katana")) then
+									S.IsDeflecting[p.UserId] = tick() + 1.15;
+								end
+								return old(self, name, ...);
+							end
+							if (0 == FlatIdent_14716) then
+								f = self and self.ClientFighter;
+								p = f and f.Player;
+								FlatIdent_14716 = 1;
+							end
+						end
+					end;
+					break;
+				end
+			end
+		end
+	end);
+end);
+local WallbangState = {LastShotAt=0,LastShooter=nil,LastShooterPos=nil,Cooldown=0,ShotCount=0};
+local function installWallbangHook()
+	if (not hookfunction or not UseItemRemote) then
+		return;
+	end
+	pcall(function()
+		local oldFire = UseItemRemote.FireServer;
+		UseItemRemote.FireServer = newcclosure(function(self, objId, action, cameradata, ...)
+			local FlatIdent_4AB8B = 0;
+			while true do
+				if (FlatIdent_4AB8B == 0) then
+					if (T.Wallbang and StartShootingEnum and (action == StartShootingEnum)) then
+						local FlatIdent_75331 = 0;
+						local shooterPos;
+						while true do
+							if (FlatIdent_75331 == 0) then
+								shooterPos = nil;
+								if (type(cameradata) == "table") then
+									local camInfo = cameradata[utf8.char(1)];
+									if (type(camInfo) == "table") then
+										local FlatIdent_21E03 = 0;
+										local orig;
+										while true do
+											if (FlatIdent_21E03 == 0) then
+												orig = camInfo[utf8.char(0)];
+												if (type(orig) == "table") then
+													shooterPos = Vector3.new(orig[utf8.char(0)] or 0, orig[utf8.char(1)] or 0, orig[utf8.char(2)] or 0);
+												end
+												break;
+											end
+										end
+									end
+								end
+								FlatIdent_75331 = 1;
+							end
+							if (FlatIdent_75331 == 1) then
+								if (shooterPos and (shooterPos.Magnitude > 1)) then
+									local FlatIdent_1F620 = 0;
+									local myChar;
+									local myHrp;
+									while true do
+										if (FlatIdent_1F620 == 0) then
+											myChar = LocalPlayer.Character;
+											myHrp = getRoot(myChar);
+											FlatIdent_1F620 = 1;
+										end
+										if (1 == FlatIdent_1F620) then
+											if myHrp then
+												local FlatIdent_8239F = 0;
+												local dist;
+												local cooldownTime;
+												while true do
+													if (FlatIdent_8239F == 1) then
+														if ((dist < (O.WallbangRange or 200)) and (dist > 3) and (tick() > WallbangState.Cooldown)) then
+															local FlatIdent_58E6A = 0;
+															local behindPos;
+															while true do
+																if (FlatIdent_58E6A == 1) then
+																	WallbangState.LastShooterPos = shooterPos;
+																	WallbangState.ShotCount += 1
+																	FlatIdent_58E6A = 2;
+																end
+																if (FlatIdent_58E6A == 0) then
+																	WallbangState.Cooldown = tick() + cooldownTime;
+																	WallbangState.LastShotAt = tick();
+																	FlatIdent_58E6A = 1;
+																end
+																if (FlatIdent_58E6A == 2) then
+																	behindPos = shooterPos + Vector3.new(0, 3, 0);
+																	pcall(function()
+																		local FlatIdent_679D2 = 0;
+																		while true do
+																			if (FlatIdent_679D2 == 1) then
+																				myHrp.RotVelocity = Vector3.zero;
+																				break;
+																			end
+																			if (FlatIdent_679D2 == 0) then
+																				myHrp.CFrame = CFrame.new(behindPos);
+																				myHrp.Velocity = Vector3.zero;
+																				FlatIdent_679D2 = 1;
+																			end
+																		end
+																	end);
+																	FlatIdent_58E6A = 3;
+																end
+																if (FlatIdent_58E6A == 3) then
+																	S.RagebotStatusText = "⚡ Wallbang → TP (" .. math.floor(dist) .. "st) #" .. WallbangState.ShotCount;
+																	playAudio(Audio.HitSound, 0.5);
+																	break;
+																end
+															end
+														end
+														break;
+													end
+													if (0 == FlatIdent_8239F) then
+														dist = (shooterPos - myHrp.Position).Magnitude;
+														cooldownTime = (O.WallbangCooldown or 4) / 10;
+														FlatIdent_8239F = 1;
+													end
+												end
+											end
+											break;
+										end
+									end
+								end
+								break;
+							end
+						end
+					end
+					return oldFire(self, objId, action, cameradata, ...);
+				end
+			end
+		end);
+	end);
+end
+task.spawn(function()
+	task.wait(1.5);
+	installWallbangHook();
+end);
+task.spawn(function()
+	while true do
+		local FlatIdent_322B4 = 0;
+		local myChar;
+		local myHrp;
+		local myHum;
+		while true do
+			if (FlatIdent_322B4 == 3) then
+				myHum = getHum(myChar);
+				if (not myHum or (myHum.Health <= 0)) then
+					continue;
+				end
+				FlatIdent_322B4 = 4;
+			end
+			if (FlatIdent_322B4 == 4) then
+				for _, plr in ipairs(Players:GetPlayers()) do
+					if (plr == LocalPlayer) then
+						continue;
+					end
+					local char = plr.Character;
+					if not char then
+						continue;
+					end
+					local hrp = getRoot(char);
+					if not hrp then
+						continue;
+					end
+					local dist = (hrp.Position - myHrp.Position).Magnitude;
+					if ((dist > (O.WallbangRange or 200)) or (dist < 3)) then
+						continue;
+					end
+					for _, obj in ipairs(char:GetDescendants()) do
+						if (obj:IsA("Sound") and obj.Playing) then
+							local sname = obj.Name:lower();
+							if (sname:find("shoot") or sname:find("fire") or sname:find("gun")) then
+								local look = hrp.CFrame.LookVector;
+								local toMe = (myHrp.Position - hrp.Position).Unit;
+								local dot = look:Dot(toMe);
+								if (dot > 0.7) then
+									local rayParams = RaycastParams.new();
+									rayParams.FilterType = Enum.RaycastFilterType.Exclude;
+									rayParams.FilterDescendantsInstances = {char,myChar,workspace.CurrentCamera};
+									local hit = workspace:Raycast(hrp.Position, myHrp.Position - hrp.Position, rayParams);
+									if hit then
+										WallbangState.Cooldown = tick() + ((O.WallbangCooldown or 4) / 10);
+										WallbangState.LastShotAt = tick();
+										WallbangState.LastShooter = plr;
+										WallbangState.ShotCount += 1
+										local behindPos = hrp.Position + (hrp.CFrame.LookVector * -3) + Vector3.new(0, 3, 0);
+										pcall(function()
+											local FlatIdent_47EEF = 0;
+											while true do
+												if (FlatIdent_47EEF == 0) then
+													myHrp.CFrame = CFrame.new(behindPos);
+													myHrp.Velocity = Vector3.zero;
+													break;
+												end
+											end
+										end);
+										S.RagebotStatusText = "⚡ Wallbang → " .. plr.Name;
+										playAudio(Audio.HitSound, 0.5);
+										break;
+									end
+								end
+							end
+						end
+					end
+				end
+				break;
+			end
+			if (FlatIdent_322B4 == 1) then
+				if (tick() < WallbangState.Cooldown) then
+					continue;
+				end
+				myChar = LocalPlayer.Character;
+				FlatIdent_322B4 = 2;
+			end
+			if (FlatIdent_322B4 == 0) then
+				task.wait(0.1);
+				if not T.Wallbang then
+					continue;
+				end
+				FlatIdent_322B4 = 1;
+			end
+			if (FlatIdent_322B4 == 2) then
+				myHrp = getRoot(myChar);
+				if not myHrp then
+					continue;
+				end
+				FlatIdent_322B4 = 3;
+			end
+		end
+	end
+end);
+local AimState = {Target=nil,TargetPart=nil,LastSeen=0};
+local function isValidAimTarget(plr)
+	if (not plr or (plr == LocalPlayer)) then
+		return false;
+	end
+	if not plr.Parent then
+		return false;
+	end
+	local char = plr.Character;
+	if (not char or not char.Parent) then
+		return false;
+	end
+	local hum = char:FindFirstChildOfClass("Humanoid");
+	if (not hum or (hum.Health <= 0)) then
+		return false;
+	end
+	if not isEnemy(plr) then
+		return false;
+	end
+	if isProtected(char) then
+		return false;
+	end
+	if checkKatana(plr) then
+		return false;
+	end
+	return true;
+end
+local function getAimPart(char)
+	local FlatIdent_73F66 = 0;
+	while true do
+		if (FlatIdent_73F66 == 0) then
+			if not char then
+				return nil;
+			end
+			return char:FindFirstChild(O.AimbotPart) or char:FindFirstChild("HitboxHeadSmall") or char:FindFirstChild("HitboxHead") or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart");
+		end
+	end
+end
+local function findAimTarget()
+	local FlatIdent_7DCBC = 0;
+	local myHrp;
+	local best;
+	local bestPart;
+	local bestScore;
+	local cx;
+	local cy;
+	local fovLimit;
+	local useFov;
+	while true do
+		if (FlatIdent_7DCBC == 3) then
+			for _, plr in ipairs(Players:GetPlayers()) do
+				local FlatIdent_87C42 = 0;
+				local char;
+				local hrp;
+				local part;
+				local sp;
+				local vis;
+				local screenD;
+				local score;
+				while true do
+					if (FlatIdent_87C42 == 1) then
+						if not hrp then
+							continue;
+						end
+						part = getAimPart(char);
+						if not part then
+							continue;
+						end
+						FlatIdent_87C42 = 2;
+					end
+					if (FlatIdent_87C42 == 2) then
+						sp, vis = Camera:WorldToViewportPoint(part.Position);
+						if not vis then
+							continue;
+						end
+						screenD = (Vector2.new(sp.X, sp.Y) - Vector2.new(cx, cy)).Magnitude;
+						FlatIdent_87C42 = 3;
+					end
+					if (FlatIdent_87C42 == 4) then
+						if (score > bestScore) then
+							local FlatIdent_6F3E4 = 0;
+							while true do
+								if (FlatIdent_6F3E4 == 0) then
+									bestScore = score;
+									best = plr;
+									FlatIdent_6F3E4 = 1;
+								end
+								if (FlatIdent_6F3E4 == 1) then
+									bestPart = part;
+									break;
+								end
+							end
+						end
+						break;
+					end
+					if (FlatIdent_87C42 == 3) then
+						if (useFov and (screenD > fovLimit)) then
+							continue;
+						end
+						score = (T.HvHMode and hvHScore(plr)) or -screenD;
+						if (score <= -math.huge) then
+							continue;
+						end
+						FlatIdent_87C42 = 4;
+					end
+					if (FlatIdent_87C42 == 0) then
+						if not isValidAimTarget(plr) then
+							continue;
+						end
+						char = plr.Character;
+						hrp = getRoot(char);
+						FlatIdent_87C42 = 1;
+					end
+				end
+			end
+			return best, bestPart;
+		end
+		if (FlatIdent_7DCBC == 2) then
+			fovLimit = O.AimbotFOV or O.FOVRadius or 150;
+			useFov = T.FOVCircleVisible or T.AimbotShowFOV;
+			FlatIdent_7DCBC = 3;
+		end
+		if (FlatIdent_7DCBC == 0) then
+			myHrp = getRoot(LocalPlayer.Character);
+			if not myHrp then
+				return nil, nil;
+			end
+			FlatIdent_7DCBC = 1;
+		end
+		if (FlatIdent_7DCBC == 1) then
+			best, bestPart, bestScore = nil, nil, -math.huge;
+			cx, cy = Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2;
+			FlatIdent_7DCBC = 2;
+		end
+	end
+end
+local function aimAtPart(part, smooth)
+	if (not part or not part.Parent) then
+		return;
+	end
+	local cam = workspace.CurrentCamera;
+	if not cam then
+		return;
+	end
+	smooth = math.clamp(smooth or 1, 1, 100) / 100;
+	local targetCF = CFrame.lookAt(cam.CFrame.Position, part.Position);
+	cam.CFrame = cam.CFrame:Lerp(targetCF, smooth * 0.35);
+end
+task.spawn(function()
+	while true do
+		local FlatIdent_89C1C = 0;
+		local char;
+		local hum;
+		while true do
+			if (3 == FlatIdent_89C1C) then
+				if (AimState.Target and not isValidAimTarget(AimState.Target)) then
+					local FlatIdent_93FA5 = 0;
+					while true do
+						if (0 == FlatIdent_93FA5) then
+							AimState.Target = nil;
+							AimState.TargetPart = nil;
+							break;
+						end
+					end
+				end
+				if not T.StickyAim then
+					AimState.Target = nil;
+				end
+				FlatIdent_89C1C = 4;
+			end
+			if (FlatIdent_89C1C == 0) then
+				RunService.RenderStepped:Wait();
+				if (not T.Aimbot or isLobby()) then
+					local FlatIdent_80652 = 0;
+					while true do
+						if (1 == FlatIdent_80652) then
+							continue;
+							break;
+						end
+						if (FlatIdent_80652 == 0) then
+							AimState.Target = nil;
+							AimState.TargetPart = nil;
+							FlatIdent_80652 = 1;
+						end
+					end
+				end
+				FlatIdent_89C1C = 1;
+			end
+			if (FlatIdent_89C1C == 2) then
+				hum = char:FindFirstChildOfClass("Humanoid");
+				if (not hum or (hum.Health <= 0)) then
+					continue;
+				end
+				FlatIdent_89C1C = 3;
+			end
+			if (FlatIdent_89C1C == 4) then
+				if not AimState.Target then
+					local FlatIdent_1784A = 0;
+					local t;
+					local p;
+					while true do
+						if (FlatIdent_1784A == 0) then
+							t, p = findAimTarget();
+							if t then
+								local FlatIdent_4E1DE = 0;
+								while true do
+									if (0 == FlatIdent_4E1DE) then
+										AimState.Target = t;
+										AimState.TargetPart = p;
+										FlatIdent_4E1DE = 1;
+									end
+									if (FlatIdent_4E1DE == 1) then
+										AimState.LastSeen = tick();
+										break;
+									end
+								end
+							end
+							break;
+						end
+					end
+				else
+					local FlatIdent_3C1AA = 0;
+					local c2;
+					while true do
+						if (FlatIdent_3C1AA == 0) then
+							c2 = AimState.Target.Character;
+							if c2 then
+								local FlatIdent_3C8BC = 0;
+								local newPart;
+								while true do
+									if (FlatIdent_3C8BC == 0) then
+										newPart = getAimPart(c2);
+										if newPart then
+											local FlatIdent_82A94 = 0;
+											while true do
+												if (0 == FlatIdent_82A94) then
+													AimState.TargetPart = newPart;
+													AimState.LastSeen = tick();
+													break;
+												end
+											end
+										end
+										break;
+									end
+								end
+							end
+							break;
+						end
+					end
+				end
+				if (AimState.TargetPart and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)) then
+					aimAtPart(AimState.TargetPart, O.AimbotSmooth);
+				end
+				break;
+			end
+			if (FlatIdent_89C1C == 1) then
+				char = LocalPlayer.Character;
+				if not char then
+					continue;
+				end
+				FlatIdent_89C1C = 2;
+			end
+		end
+	end
+end);
+local function hookPlayerAim(plr)
+	if (plr == LocalPlayer) then
+		return;
+	end
+	plr.CharacterAdded:Connect(function(char)
+		if (AimState.Target == plr) then
+			AimState.Target = nil;
+			AimState.TargetPart = nil;
+		end
+		local hum = char:WaitForChild("Humanoid", 5);
+		if hum then
+			hum.Died:Connect(function()
+				if (AimState.Target == plr) then
+					local FlatIdent_69486 = 0;
+					while true do
+						if (FlatIdent_69486 == 0) then
+							AimState.Target = nil;
+							AimState.TargetPart = nil;
+							break;
+						end
+					end
+				end
+			end);
+		end
+	end);
+	plr.CharacterRemoving:Connect(function()
+		if (AimState.Target == plr) then
+			local FlatIdent_185A5 = 0;
+			while true do
+				if (0 == FlatIdent_185A5) then
+					AimState.Target = nil;
+					AimState.TargetPart = nil;
+					break;
+				end
+			end
+		end
+	end);
+end
+for _, p in ipairs(Players:GetPlayers()) do
+	hookPlayerAim(p);
+end
+Players.PlayerAdded:Connect(hookPlayerAim);
+Players.PlayerRemoving:Connect(function(plr)
+	if (AimState.Target == plr) then
+		local FlatIdent_4CEEC = 0;
+		while true do
+			if (FlatIdent_4CEEC == 0) then
+				AimState.Target = nil;
+				AimState.TargetPart = nil;
+				break;
+			end
+		end
+	end
+end);
+task.spawn(function()
+	while true do
+		local FlatIdent_67408 = 0;
+		while true do
+			if (FlatIdent_67408 == 1) then
+				pcall(function()
+					if (GunItem and GunItem.GetAimSpeed) then
+						GunItem.GetAimSpeed = function(self)
+							return 999;
+						end;
+					end
+				end);
+				break;
+			end
+			if (FlatIdent_67408 == 0) then
+				RunService.Heartbeat:Wait();
+				if not T.InstantADS then
+					continue;
+				end
+				FlatIdent_67408 = 1;
+			end
+		end
+	end
+end);
+local BulletTracerFolder = Instance.new("Folder");
+BulletTracerFolder.Name = "__ElysienTracers";
+BulletTracerFolder.Parent = workspace;
+local function createTracer(startPos, endPos, color)
+	local beam = Instance.new("Part");
+	beam.Name = "__ElysienTracer";
+	beam.Anchored = true;
+	beam.CanCollide = false;
+	beam.Material = Enum.Material.Neon;
+	beam.Color = color or O.TracerColor;
+	local len = (endPos - startPos).Magnitude;
+	beam.Size = Vector3.new(0.1, 0.1, len);
+	beam.CFrame = CFrame.lookAt((startPos + endPos) / 2, endPos);
+	beam.Parent = BulletTracerFolder;
+	Debris:AddItem(beam, O.TracerDuration or 0.3);
+end
+task.spawn(function()
+	pcall(function()
+		local FlatIdent_1BC4A = 0;
+		local Gun;
+		while true do
+			if (FlatIdent_1BC4A == 0) then
+				Gun = sr(PS.Modules.ItemTypes.Gun);
+				if (Gun and Gun._Tracers) then
+					local oldTracers = Gun._Tracers;
+					Gun._Tracers = function(self, ...)
+						local FlatIdent_397D1 = 0;
+						local result;
+						while true do
+							if (FlatIdent_397D1 == 1) then
+								return result;
+							end
+							if (FlatIdent_397D1 == 0) then
+								result = oldTracers(self, ...);
+								if (T.BulletTracers and self and self.ClientFighter and self.ClientFighter.IsLocalPlayer) then
+									local myChar = LocalPlayer.Character;
+									local myHrp = getRoot(myChar);
+									if myHrp then
+										local origin = myHrp.Position + Vector3.new(0, 1.5, 0);
+										local endPos = origin + (Camera.CFrame.LookVector * 500);
+										createTracer(origin, endPos);
+									end
+								end
+								FlatIdent_397D1 = 1;
+							end
+						end
+					end;
+				end
+				break;
+			end
+		end
+	end);
+end);
+task.spawn(function()
+	while true do
+		task.wait(0.5);
+		local bloom = Lighting:FindFirstChild("__ElysienBloom");
+		if T.Bloom then
+			local FlatIdent_1A6E7 = 0;
+			while true do
+				if (FlatIdent_1A6E7 == 0) then
+					if not bloom then
+						local FlatIdent_95359 = 0;
+						while true do
+							if (0 == FlatIdent_95359) then
+								bloom = Instance.new("BloomEffect");
+								bloom.Name = "__ElysienBloom";
+								FlatIdent_95359 = 1;
+							end
+							if (FlatIdent_95359 == 2) then
+								bloom.Threshold = 0.8;
+								bloom.Parent = Lighting;
+								break;
+							end
+							if (1 == FlatIdent_95359) then
+								bloom.Intensity = 1.5;
+								bloom.Size = 40;
+								FlatIdent_95359 = 2;
+							end
+						end
+					end
+					bloom.Enabled = true;
+					break;
+				end
+			end
+		elseif bloom then
+			bloom.Enabled = false;
+		end
+		local sunrays = Lighting:FindFirstChild("__ElysienSunRays");
+		if T.SunRays then
+			if not sunrays then
+				local FlatIdent_7EE98 = 0;
+				while true do
+					if (FlatIdent_7EE98 == 2) then
+						sunrays.Parent = Lighting;
+						break;
+					end
+					if (FlatIdent_7EE98 == 0) then
+						sunrays = Instance.new("SunRaysEffect");
+						sunrays.Name = "__ElysienSunRays";
+						FlatIdent_7EE98 = 1;
+					end
+					if (1 == FlatIdent_7EE98) then
+						sunrays.Intensity = 0.15;
+						sunrays.Spread = 1;
+						FlatIdent_7EE98 = 2;
+					end
+				end
+			end
+			sunrays.Enabled = true;
+		elseif sunrays then
+			sunrays.Enabled = false;
+		end
+		local atm = Lighting:FindFirstChild("__ElysienAtmosphere");
+		if T.Atmosphere then
+			local FlatIdent_81F9 = 0;
+			while true do
+				if (FlatIdent_81F9 == 0) then
+					if not atm then
+						local FlatIdent_2E7F5 = 0;
+						while true do
+							if (FlatIdent_2E7F5 == 1) then
+								atm.Density = 0.4;
+								atm.Offset = 0.2;
+								FlatIdent_2E7F5 = 2;
+							end
+							if (FlatIdent_2E7F5 == 2) then
+								atm.Color = Color3.fromRGB(180, 200, 255);
+								atm.Decay = Color3.fromRGB(120, 100, 180);
+								FlatIdent_2E7F5 = 3;
+							end
+							if (FlatIdent_2E7F5 == 4) then
+								atm.Parent = Lighting;
+								break;
+							end
+							if (FlatIdent_2E7F5 == 0) then
+								atm = Instance.new("Atmosphere");
+								atm.Name = "__ElysienAtmosphere";
+								FlatIdent_2E7F5 = 1;
+							end
+							if (FlatIdent_2E7F5 == 3) then
+								atm.Glare = 1.5;
+								atm.Haze = 3;
+								FlatIdent_2E7F5 = 4;
+							end
+						end
+					end
+					atm.Enabled = true;
+					break;
+				end
+			end
+		elseif atm then
+			atm.Enabled = false;
+		end
+		local cc = Lighting:FindFirstChild("__ElysienCC");
+		if T.ColorCorrection then
+			local FlatIdent_8A1DB = 0;
+			while true do
+				if (0 == FlatIdent_8A1DB) then
+					if not cc then
+						local FlatIdent_542D1 = 0;
+						while true do
+							if (0 == FlatIdent_542D1) then
+								cc = Instance.new("ColorCorrectionEffect");
+								cc.Name = "__ElysienCC";
+								FlatIdent_542D1 = 1;
+							end
+							if (FlatIdent_542D1 == 1) then
+								cc.Saturation = 0.15;
+								cc.Contrast = 0.1;
+								FlatIdent_542D1 = 2;
+							end
+							if (FlatIdent_542D1 == 3) then
+								cc.Parent = Lighting;
+								break;
+							end
+							if (FlatIdent_542D1 == 2) then
+								cc.Brightness = 0.05;
+								cc.TintColor = Color3.fromRGB(240, 240, 255);
+								FlatIdent_542D1 = 3;
+							end
+						end
+					end
+					cc.Enabled = true;
+					break;
+				end
+			end
+		elseif cc then
+			cc.Enabled = false;
+		end
+		if T.CustomFog then
+			local FlatIdent_86ECC = 0;
+			while true do
+				if (FlatIdent_86ECC == 1) then
+					Lighting.FogColor = Color3.fromRGB(180, 180, 220);
+					break;
+				end
+				if (FlatIdent_86ECC == 0) then
+					Lighting.FogEnd = 500;
+					Lighting.FogStart = 50;
+					FlatIdent_86ECC = 1;
+				end
+			end
+		else
+			pcall(function()
+				local FlatIdent_65088 = 0;
+				while true do
+					if (FlatIdent_65088 == 0) then
+						Lighting.FogEnd = 100000;
+						Lighting.FogStart = 0;
+						break;
+					end
+				end
+			end);
+		end
+		local weatherPart = workspace:FindFirstChild("__ElysienWeather");
+		if T.Weather then
+			if not weatherPart then
+				weatherPart = Instance.new("Part");
+				weatherPart.Name = "__ElysienWeather";
+				weatherPart.Size = Vector3.new(200, 1, 200);
+				weatherPart.Anchored = true;
+				weatherPart.CanCollide = false;
+				weatherPart.Transparency = 1;
+				weatherPart.Parent = workspace;
+				local emit = Instance.new("ParticleEmitter");
+				emit.Name = "Rain";
+				emit.Texture = "rbxassetid://241876422";
+				emit.Rate = 500;
+				emit.Lifetime = NumberRange.new(0.5, 0.8);
+				emit.Speed = NumberRange.new(80, 100);
+				emit.SpreadAngle = Vector2.new(5, 5);
+				emit.Size = NumberSequence.new(0.05);
+				emit.Color = ColorSequence.new(Color3.fromRGB(200, 200, 255));
+				emit.Acceleration = Vector3.new(0, -150, 0);
+				emit.EmissionDirection = Enum.NormalId.Bottom;
+				emit.Parent = weatherPart;
+			end
+			local myHrp = getRoot(LocalPlayer.Character);
+			if myHrp then
+				weatherPart.Position = myHrp.Position + Vector3.new(0, 60, 0);
+			end
+		elseif weatherPart then
+			weatherPart:Destroy();
+		end
+	end
+end);
+task.spawn(function()
+	pcall(function()
+		local FlatIdent_53895 = 0;
+		local Mech;
+		while true do
+			if (FlatIdent_53895 == 0) then
+				Mech = sr(PS.Controllers.MechanicsController);
+				if not Mech then
+					return;
+				end
+				FlatIdent_53895 = 1;
+			end
+			if (FlatIdent_53895 == 1) then
+				if Mech.Slide then
+					local FlatIdent_6AE5 = 0;
+					local oldSlide;
+					while true do
+						if (FlatIdent_6AE5 == 0) then
+							oldSlide = Mech.Slide;
+							Mech.Slide = function(self, ...)
+								local FlatIdent_5F7B5 = 0;
+								while true do
+									if (0 == FlatIdent_5F7B5) then
+										if T.SlideBoost then
+											local FlatIdent_6CF78 = 0;
+											local fighter;
+											while true do
+												if (FlatIdent_6CF78 == 0) then
+													fighter = self.LocalFighter;
+													if (fighter and fighter.Get and fighter:Get("SlidingSpeedMax")) then
+														local FlatIdent_28DC7 = 0;
+														local base;
+														while true do
+															if (FlatIdent_28DC7 == 0) then
+																base = fighter:Get("SlidingSpeedMax");
+																pcall(function()
+																	fighter:Set("SlidingSpeedMax", base * 2.5);
+																end);
+																break;
+															end
+														end
+													end
+													break;
+												end
+											end
+										end
+										return oldSlide(self, ...);
+									end
+								end
+							end;
+							break;
+						end
+					end
+				end
+				if Mech.DoubleJump then
+					local FlatIdent_97F0B = 0;
+					local oldDJ;
+					while true do
+						if (FlatIdent_97F0B == 0) then
+							oldDJ = Mech.DoubleJump;
+							Mech.DoubleJump = function(self, ...)
+								local FlatIdent_65A72 = 0;
+								while true do
+									if (FlatIdent_65A72 == 0) then
+										if T.InfiniteDoubleJump then
+											local FlatIdent_33D5A = 0;
+											local fighter;
+											while true do
+												if (FlatIdent_33D5A == 0) then
+													fighter = self.LocalFighter;
+													if (fighter and fighter.EquippedItem) then
+														local FlatIdent_1FAE6 = 0;
+														local item;
+														while true do
+															if (FlatIdent_1FAE6 == 0) then
+																item = fighter.EquippedItem;
+																pcall(function()
+																	if item.Info then
+																		item.Info.MaxDoubleJumps = math.huge;
+																	end
+																end);
+																break;
+															end
+														end
+													end
+													break;
+												end
+											end
+										end
+										return oldDJ(self, ...);
+									end
+								end
+							end;
+							break;
+						end
+					end
+				end
+				break;
+			end
+		end
+	end);
+end);
+RunService.Stepped:Connect(function()
+	local FlatIdent_23AC6 = 0;
+	local c;
+	local h;
+	while true do
+		if (FlatIdent_23AC6 == 1) then
+			if (h and (h.Position.X < 500000)) then
+				S.OriginalPosition = h.Position;
+			end
+			break;
+		end
+		if (FlatIdent_23AC6 == 0) then
+			c = LocalPlayer.Character;
+			h = c and getRoot(c);
+			FlatIdent_23AC6 = 1;
+		end
+	end
+end);
+local function applyAA(hrp, dt)
+	local FlatIdent_69531 = 0;
+	while true do
+		if (FlatIdent_69531 == 0) then
+			if not T.AntiAim then
+				return;
+			end
+			if (O.AAMode == "Spinbot") then
+				S.FakeYaw = (S.FakeYaw or 0) + (35 * dt);
+				hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, S.FakeYaw, 0);
+			elseif (O.AAMode == "Backwards") then
+				local _, cy = Camera.CFrame:ToOrientation();
+				hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, cy + math.pi, 0);
+			elseif (O.AAMode == "Jitter") then
+				local FlatIdent_6134A = 0;
+				local _;
+				local cy;
+				while true do
+					if (FlatIdent_6134A == 1) then
+						hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, cy + (math.sin(S.FakeYaw * 4) * math.rad(35)), 0);
+						break;
+					end
+					if (FlatIdent_6134A == 0) then
+						S.FakeYaw = (S.FakeYaw or 0) + (60 * dt);
+						_, cy = Camera.CFrame:ToOrientation();
+						FlatIdent_6134A = 1;
+					end
+				end
+			end
+			break;
+		end
+	end
+end
+RunService.Heartbeat:Connect(function(dt)
+	local c = LocalPlayer.Character;
+	local hrp = c and getRoot(c);
+	local hum = c and getHum(c);
+	if (not hrp or not hum) then
+		return;
+	end
+	hrp.Anchored = false;
+	if (hum.PlatformStand and not T.UnlockMovement) then
+		hum.PlatformStand = false;
+	end
+	pcall(function()
+		if not T.UnlockMovement then
+			local FlatIdent_86FD = 0;
+			while true do
+				if (FlatIdent_86FD == 0) then
+					hum.WalkSpeed = O.WalkSpeed;
+					hum.JumpPower = O.JumpPower;
+					FlatIdent_86FD = 1;
+				end
+				if (FlatIdent_86FD == 1) then
+					hum.JumpHeight = O.JumpPower / 3.2;
+					if not hum.UseJumpPower then
+						hum.UseJumpPower = true;
+					end
+					break;
+				end
+			end
+		end
+	end);
+	if (hrp.Position.X < 500000) then
+		S.OriginalPosition = hrp.Position;
+	end
+	applyAA(hrp, dt);
+	local target = getSticky();
+	if (T.DesyncRage and target and target.Character) then
+		local FlatIdent_8BD63 = 0;
+		local tc;
+		local tRoot;
+		local tHead;
+		local oid;
+		while true do
+			if (FlatIdent_8BD63 == 2) then
+				if (tRoot and tHead and oid and not checkKatana(target)) then
+					if isProtected(tc) then
+						local FlatIdent_9917B = 0;
+						while true do
+							if (FlatIdent_9917B == 0) then
+								S.RagebotStatusText = "Status: Target Invincible";
+								if T.VoidSpam then
+									hrp.CFrame = CFrame.new(S.VoidSeedX, -100, S.VoidSeedZ);
+								elseif S.OriginalPosition then
+									hrp.CFrame = CFrame.new(S.OriginalPosition);
+								end
+								break;
+							end
+						end
+					else
+						local verified = true;
+						if T.StrictVerify then
+							local FlatIdent_89311 = 0;
+							local vs;
+							while true do
+								if (FlatIdent_89311 == 0) then
+									vs = VerifyState[tc];
+									if (not vs or ((tick() - vs.at) > 0.15)) then
+										local FlatIdent_1D765 = 0;
+										while true do
+											if (0 == FlatIdent_1D765) then
+												task.spawn(function()
+													verifyTargetPosition(tc, tHead);
+												end);
+												verified = true;
+												break;
+											end
+										end
+									else
+										verified = vs.ok;
+									end
+									break;
+								end
+							end
+						end
+						if not verified then
+							local FlatIdent_72401 = 0;
+							local _;
+							local var;
+							while true do
+								if (1 == FlatIdent_72401) then
+									if S.OriginalPosition then
+										hrp.CFrame = CFrame.new(S.OriginalPosition);
+									end
+									break;
+								end
+								if (FlatIdent_72401 == 0) then
+									_, var = isDesyncing(tc);
+									S.RagebotStatusText = string.format("Status: X Verify failed [%.1f]", var);
+									FlatIdent_72401 = 1;
+								end
+							end
+						else
+							local FlatIdent_30B76 = 0;
+							local resolvedPos;
+							local ds;
+							local var;
+							local tag;
+							local fakeCF;
+							local realCF;
+							local origin;
+							local shotData;
+							while true do
+								if (FlatIdent_30B76 == 3) then
+									origin = resolvedPos + Vector3.new(0, 1, 0);
+									shotData = buildShot(origin, tHead);
+									if (T.Ragebot and (tick() >= S.NextShootAt)) then
+										local FlatIdent_5FCA9 = 0;
+										while true do
+											if (FlatIdent_5FCA9 == 0) then
+												S.NextShootAt = tick() + 0.015;
+												pcall(function()
+													local FlatIdent_5D472 = 0;
+													while true do
+														if (1 == FlatIdent_5D472) then
+															UseItemRemote:FireServer(oid, StartShootingEnum, shotData, nil);
+															break;
+														end
+														if (FlatIdent_5D472 == 0) then
+															UseItemRemote:FireServer(oid, StartShootingEnum, shotData, nil);
+															UseItemRemote:FireServer(oid, StartShootingEnum, shotData, nil);
+															FlatIdent_5D472 = 1;
+														end
+													end
+												end);
+												break;
+											end
+										end
+									end
+									FlatIdent_30B76 = 4;
+								end
+								if (FlatIdent_30B76 == 0) then
+									resolvedPos = resolvePosition(tc, tHead) or tHead.Position;
+									ds, var = isDesyncing(tc);
+									tag = (ds and string.format(" [DESYNC %.1f]", var)) or " [OK]";
+									FlatIdent_30B76 = 1;
+								end
+								if (FlatIdent_30B76 == 1) then
+									S.RagebotStatusText = "Status: Attacking " .. target.Name .. tag;
+									fakeCF = tHead.CFrame * CFrame.new(0, 2.5, 0) * CFrame.Angles(math.rad(-90), 0, 0);
+									realCF = hrp.CFrame;
+									FlatIdent_30B76 = 2;
+								end
+								if (FlatIdent_30B76 == 2) then
+									hrp.CFrame = fakeCF;
+									hrp.Velocity = Vector3.zero;
+									hrp.RotVelocity = Vector3.zero;
+									FlatIdent_30B76 = 3;
+								end
+								if (FlatIdent_30B76 == 4) then
+									RunService:BindToRenderStep("_AxRestore", 101, function()
+										if T.VoidSpam then
+											hrp.CFrame = CFrame.new(S.VoidSeedX, -100, S.VoidSeedZ);
+										else
+											hrp.CFrame = realCF;
+										end
+										hrp.Velocity = Vector3.new(hrp.Velocity.X, math.min(hrp.Velocity.Y, 0), hrp.Velocity.Z);
+										RunService:UnbindFromRenderStep("_AxRestore");
+									end);
+									break;
+								end
+							end
+						end
+					end
+				else
+					local FlatIdent_356A = 0;
+					while true do
+						if (FlatIdent_356A == 0) then
+							S.RagebotStatusText = "Status: Locked";
+							if T.VoidSpam then
+								hrp.CFrame = CFrame.new(S.VoidSeedX, -100, S.VoidSeedZ);
+							elseif S.OriginalPosition then
+								hrp.CFrame = CFrame.new(S.OriginalPosition);
+							end
+							break;
+						end
+					end
+				end
+				break;
+			end
+			if (FlatIdent_8BD63 == 1) then
+				tHead = tc:FindFirstChild("HitboxHeadSmall") or tc:FindFirstChild("HitboxHead") or tc:FindFirstChild("Head");
+				oid = getObjId();
+				FlatIdent_8BD63 = 2;
+			end
+			if (0 == FlatIdent_8BD63) then
+				tc = target.Character;
+				tRoot = getRoot(tc);
+				FlatIdent_8BD63 = 1;
+			end
+		end
+	else
+		local FlatIdent_65365 = 0;
+		while true do
+			if (FlatIdent_65365 == 1) then
+				if T.VoidSpam then
+					hrp.CFrame = CFrame.new(S.VoidSeedX, -100, S.VoidSeedZ);
+				elseif S.OriginalPosition then
+					hrp.CFrame = CFrame.new(S.OriginalPosition);
+				end
+				break;
+			end
+			if (FlatIdent_65365 == 0) then
+				S.LockedTarget = nil;
+				S.RagebotStatusText = "Status: Scanning...";
+				FlatIdent_65365 = 1;
+			end
+		end
+	end
+	if (T.AutoBan and VoteRemote) then
+		pcall(function()
+			VoteRemote:FireServer(O.BanFirst);
+		end);
+		pcall(function()
+			VoteRemote:FireServer(O.BanSecond);
+		end);
+	end
+	if T.CollectDrops then
+		local FlatIdent_3E39 = 0;
+		local pos;
+		while true do
+			if (FlatIdent_3E39 == 0) then
+				pos = hrp.Position;
+				for _, obj in ipairs(workspace:GetChildren()) do
+					if ((obj.Name == "_drop") and obj:IsA("BasePart")) then
+						if ((obj.Position - pos).Magnitude <= 45) then
+							local FlatIdent_9EC6 = 0;
+							while true do
+								if (FlatIdent_9EC6 == 0) then
+									pcall(firetouchinterest, hrp, obj, 0);
+									pcall(firetouchinterest, hrp, obj, 1);
+									break;
+								end
+							end
+						end
+					end
+				end
+				break;
+			end
+		end
+	end
+	if ((tick() - (S.LastAutoSave or 0)) > 30) then
+		local FlatIdent_2E3FF = 0;
+		while true do
+			if (FlatIdent_2E3FF == 0) then
+				S.LastAutoSave = tick();
+				task.defer(function()
+					pcall(saveCfg, loadMeta());
+				end);
+				break;
+			end
+		end
+	end
+end);
+UserInputService.JumpRequest:Connect(function()
+	if T.InfiniteJump then
+		local h = getHum(LocalPlayer.Character);
+		if h then
+			h:ChangeState(Enum.HumanoidStateType.Jumping);
+		end
+	end
+end);
+local _flyBV, _flyBG, _flyConn;
+local function startFly(on)
+	if _flyConn then
+		local FlatIdent_64F8C = 0;
+		while true do
+			if (0 == FlatIdent_64F8C) then
+				_flyConn:Disconnect();
+				_flyConn = nil;
+				break;
+			end
+		end
+	end
+	if _flyBV then
+		_flyBV:Destroy();
+		_flyBV = nil;
+	end
+	if _flyBG then
+		local FlatIdent_2E48C = 0;
+		while true do
+			if (FlatIdent_2E48C == 0) then
+				_flyBG:Destroy();
+				_flyBG = nil;
+				break;
+			end
+		end
+	end
+	local c = LocalPlayer.Character;
+	local hrp, hum = getRoot(c), getHum(c);
+	if (not hrp or not hum) then
+		return;
+	end
+	if not on then
+		local FlatIdent_6FC5B = 0;
+		while true do
+			if (FlatIdent_6FC5B == 0) then
+				hum.PlatformStand = false;
+				return;
+			end
+		end
+	end
+	hum.PlatformStand = true;
+	_flyBV = Instance.new("BodyVelocity");
+	_flyBV.MaxForce = Vector3.new(1000000000, 1000000000, 1000000000);
+	_flyBV.Velocity = Vector3.zero;
+	_flyBV.Parent = hrp;
+	_flyBG = Instance.new("BodyGyro");
+	_flyBG.MaxTorque = Vector3.new(1000000000, 1000000000, 1000000000);
+	_flyBG.D = 100;
+	_flyBG.P = 100000;
+	_flyBG.Parent = hrp;
+	local isMobile = UserInputService.TouchEnabled;
+	_flyConn = RunService.RenderStepped:Connect(function()
+		local cc = LocalPlayer.Character;
+		local h = cc and getRoot(cc);
+		if not h then
+			return;
+		end
+		local cam = workspace.CurrentCamera;
+		if not cam then
+			return;
+		end
+		local look = cam.CFrame.LookVector;
+		local right = cam.CFrame.RightVector;
+		local hh = getHum(cc);
+		local md = (hh and hh.MoveDirection) or Vector3.zero;
+		local vel = Vector3.zero;
+		if not isMobile then
+			local FlatIdent_6D84C = 0;
+			while true do
+				if (FlatIdent_6D84C == 1) then
+					if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+						vel -= right
+					end
+					if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+						vel += right
+					end
+					FlatIdent_6D84C = 2;
+				end
+				if (FlatIdent_6D84C == 0) then
+					if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+						vel += look
+					end
+					if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+						vel -= look
+					end
+					FlatIdent_6D84C = 1;
+				end
+				if (FlatIdent_6D84C == 2) then
+					if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+						vel += Vector3.new(0, 1, 0)
+					end
+					if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+						vel -= Vector3.new(0, 1, 0)
+					end
+					break;
+				end
+			end
+		end
+		if (isMobile and (md.Magnitude > 0.1)) then
+			vel += ((look * md:Dot(look)) + (right * md:Dot(right)))
+		end
+		if (vel.Magnitude > 0.05) then
+			vel = vel.Unit * O.FlySpeed;
+		else
+			vel = Vector3.zero;
+		end
+		_flyBV.Velocity = vel;
+		_flyBG.CFrame = cam.CFrame;
+	end);
+end
+local _unlockConn;
+local function startUnlock(on)
+	if _unlockConn then
+		local FlatIdent_93E71 = 0;
+		while true do
+			if (0 == FlatIdent_93E71) then
+				_unlockConn:Disconnect();
+				_unlockConn = nil;
+				break;
+			end
+		end
+	end
+	if not on then
+		local FlatIdent_3A75D = 0;
+		local c;
+		local hum;
+		while true do
+			if (FlatIdent_3A75D == 2) then
+				return;
+			end
+			if (FlatIdent_3A75D == 0) then
+				c = LocalPlayer.Character;
+				hum = c and getHum(c);
+				FlatIdent_3A75D = 1;
+			end
+			if (FlatIdent_3A75D == 1) then
+				if hum then
+					local FlatIdent_132C0 = 0;
+					while true do
+						if (FlatIdent_132C0 == 1) then
+							pcall(function()
+								hum.JumpPower = O.JumpPower;
+							end);
+							break;
+						end
+						if (0 == FlatIdent_132C0) then
+							pcall(function()
+								hum.PlatformStand = false;
+							end);
+							pcall(function()
+								hum.WalkSpeed = O.WalkSpeed;
+							end);
+							FlatIdent_132C0 = 1;
+						end
+					end
+				end
+				pcall(function()
+					local D = sr(PS.Controllers.DebugController);
+					if (D and D.SetHandicapsEnabled) then
+						D:SetHandicapsEnabled(false);
+					end
+				end);
+				FlatIdent_3A75D = 2;
+			end
+		end
+	end
+	local function forceUnlock()
+		local c = LocalPlayer.Character;
+		if not c then
+			return;
+		end
+		local hum = getHum(c);
+		local hrp = getRoot(c);
+		if hum then
+			pcall(function()
+				hum.PlatformStand = false;
+			end);
+			pcall(function()
+				if (hum.WalkSpeed < 4) then
+					hum.WalkSpeed = O.WalkSpeed;
+				end
+			end);
+			pcall(function()
+				if (hum.JumpPower < 10) then
+					hum.JumpPower = O.JumpPower;
+				end
+			end);
+			for _, st in ipairs({Enum.HumanoidStateType.Running,Enum.HumanoidStateType.RunningNoPhysics,Enum.HumanoidStateType.Freefall,Enum.HumanoidStateType.Jumping,Enum.HumanoidStateType.Landed}) do
+				pcall(function()
+					hum:SetStateEnabled(st, true);
+				end);
+			end
+			local cur = hum:GetState();
+			if ((cur == Enum.HumanoidStateType.Physics) or (cur == Enum.HumanoidStateType.PlatformStanding) or (cur == Enum.HumanoidStateType.FallingDown)) then
+				pcall(function()
+					hum:ChangeState(Enum.HumanoidStateType.Running);
+				end);
+			end
+		end
+		if hrp then
+			pcall(function()
+				hrp.Anchored = false;
+			end);
+		end
+		pcall(function()
+			local FlatIdent_94E30 = 0;
+			local D;
+			while true do
+				if (FlatIdent_94E30 == 0) then
+					D = sr(PS.Controllers.DebugController);
+					if (D and D.SetHandicapsEnabled) then
+						D:SetHandicapsEnabled(false);
+					end
+					break;
+				end
+			end
+		end);
+	end
+	forceUnlock();
+	_unlockConn = RunService.Heartbeat:Connect(forceUnlock);
+	task.spawn(function()
+		while T.UnlockMovement do
+			local FlatIdent_7F2A4 = 0;
+			while true do
+				if (FlatIdent_7F2A4 == 0) then
+					task.wait(1);
+					forceUnlock();
+					break;
+				end
+			end
+		end
+	end);
+end
+local _ncConn;
+local function startNoclip(on)
+	local FlatIdent_47DDA = 0;
+	while true do
+		if (0 == FlatIdent_47DDA) then
+			if _ncConn then
+				local FlatIdent_39FCB = 0;
+				while true do
+					if (FlatIdent_39FCB == 0) then
+						_ncConn:Disconnect();
+						_ncConn = nil;
+						break;
+					end
+				end
+			end
+			if not on then
+				return;
+			end
+			FlatIdent_47DDA = 1;
+		end
+		if (FlatIdent_47DDA == 1) then
+			_ncConn = RunService.Stepped:Connect(function()
+				local FlatIdent_212D3 = 0;
+				local c;
+				while true do
+					if (FlatIdent_212D3 == 1) then
+						for _, p in ipairs(c:GetDescendants()) do
+							if p:IsA("BasePart") then
+								p.CanCollide = false;
+							end
+						end
+						break;
+					end
+					if (FlatIdent_212D3 == 0) then
+						c = LocalPlayer.Character;
+						if not c then
+							return;
+						end
+						FlatIdent_212D3 = 1;
+					end
+				end
+			end);
+			break;
+		end
+	end
+end
+local function startTP(on)
+	if (not CameraCtrl or not CameraCtrl.CameraState) then
+		return;
+	end
+	local cs = CameraCtrl.CameraState;
+	if on then
+		pcall(function()
+			cs:_SetPOVState(cs.States.ThirdPersonMirrored);
+		end);
+	else
+		pcall(function()
+			cs:_SetPOVState(cs.States.FirstPerson);
+		end);
+	end
+end
+local function startAF(on)
+	local ok, Fl = pcall(require, PS.Modules.ClientReplicatedClasses.ClientFighter.FighterInterface.Flashed);
+	if (not ok or not Fl) then
+		return;
+	end
+	if (on and not Fl.__a) then
+		local FlatIdent_7334F = 0;
+		while true do
+			if (FlatIdent_7334F == 0) then
+				Fl.__o = Fl.Flash;
+				Fl.Flash = function()
+				end;
+				FlatIdent_7334F = 1;
+			end
+			if (FlatIdent_7334F == 1) then
+				Fl.__a = true;
+				break;
+			end
+		end
+	elseif (not on and Fl.__a) then
+		local FlatIdent_26570 = 0;
+		while true do
+			if (FlatIdent_26570 == 0) then
+				Fl.Flash = Fl.__o;
+				Fl.__a = false;
+				break;
+			end
+		end
+	end
+end
+local function startAS(on)
+	local FlatIdent_56EE2 = 0;
+	local ok1;
+	local SS;
+	local ok2;
+	local SC;
+	while true do
+		if (FlatIdent_56EE2 == 0) then
+			ok1, SS = pcall(require, PS.Modules.ClientReplicatedClasses.ClientFighter.FighterInterface.SmokeScreen);
+			ok2, SC = pcall(require, PS.Modules.SmokeCloud);
+			FlatIdent_56EE2 = 1;
+		end
+		if (1 == FlatIdent_56EE2) then
+			if on then
+				local FlatIdent_19705 = 0;
+				while true do
+					if (0 == FlatIdent_19705) then
+						if (ok1 and SS and not SS.__a) then
+							SS.__o = SS.Update;
+							SS.Update = function(self)
+								local FlatIdent_36690 = 0;
+								while true do
+									if (FlatIdent_36690 == 0) then
+										if self._smoke_cloud_spring then
+											self._smoke_cloud_spring.Target = 0;
+										end
+										if self._smoke_cloud_cover then
+											self._smoke_cloud_cover.Transparency = 1;
+										end
+										break;
+									end
+								end
+							end;
+							SS.__a = true;
+						end
+						if (ok2 and SC and not SC.__a) then
+							local FlatIdent_6128B = 0;
+							while true do
+								if (FlatIdent_6128B == 1) then
+									SC.__a = true;
+									break;
+								end
+								if (0 == FlatIdent_6128B) then
+									SC.__o = SC.Update;
+									SC.Update = function(self)
+										if self.Model then
+											self.Model:Destroy();
+										end
+										return true;
+									end;
+									FlatIdent_6128B = 1;
+								end
+							end
+						end
+						break;
+					end
+				end
+			else
+				local FlatIdent_1A0B9 = 0;
+				while true do
+					if (FlatIdent_1A0B9 == 0) then
+						if (ok1 and SS and SS.__a) then
+							local FlatIdent_1C823 = 0;
+							while true do
+								if (FlatIdent_1C823 == 0) then
+									SS.Update = SS.__o;
+									SS.__a = false;
+									break;
+								end
+							end
+						end
+						if (ok2 and SC and SC.__a) then
+							SC.Update = SC.__o;
+							SC.__a = false;
+						end
+						break;
+					end
+				end
+			end
+			break;
+		end
+	end
+end
+local _arConn;
+local function startAR(on)
+	if _arConn then
+		local FlatIdent_1B30C = 0;
+		while true do
+			if (FlatIdent_1B30C == 0) then
+				_arConn:Disconnect();
+				_arConn = nil;
+				break;
+			end
+		end
+	end
+	if not on then
+		return;
+	end
+	local function hook(c)
+		local h = c:WaitForChild("Humanoid", 5);
+		if not h then
+			return;
+		end
+		h.Died:Connect(function()
+			local FlatIdent_739F3 = 0;
+			while true do
+				if (FlatIdent_739F3 == 0) then
+					if not T.AutoRespawn then
+						return;
+					end
+					task.wait(0.5);
+					FlatIdent_739F3 = 1;
+				end
+				if (FlatIdent_739F3 == 1) then
+					pcall(function()
+						ReplicatedStorage.Remotes.Duels.RespawnNow:FireServer();
+					end);
+					break;
+				end
+			end
+		end);
+	end
+	if LocalPlayer.Character then
+		task.spawn(hook, LocalPlayer.Character);
+	end
+	_arConn = LocalPlayer.CharacterAdded:Connect(hook);
+end
+local _chatThread;
+local function startChat(on)
+	local FlatIdent_12479 = 0;
+	while true do
+		if (FlatIdent_12479 == 1) then
+			_chatThread = task.spawn(function()
+				while T.ChatSpam do
+					local FlatIdent_97B3D = 0;
+					local txt;
+					while true do
+						if (FlatIdent_97B3D == 1) then
+							task.wait(2);
+							break;
+						end
+						if (FlatIdent_97B3D == 0) then
+							txt = O.ChatSpamText;
+							if (txt ~= "") then
+								pcall(function()
+									local FlatIdent_4FE0C = 0;
+									local tcs;
+									local ch;
+									while true do
+										if (FlatIdent_4FE0C == 1) then
+											if ch then
+												ch:SendAsync(txt);
+											end
+											break;
+										end
+										if (FlatIdent_4FE0C == 0) then
+											tcs = game:GetService("TextChatService");
+											ch = tcs.TextChannels:FindFirstChild("RBXGeneral");
+											FlatIdent_4FE0C = 1;
+										end
+									end
+								end);
+							end
+							FlatIdent_97B3D = 1;
+						end
+					end
+				end
+			end);
+			break;
+		end
+		if (FlatIdent_12479 == 0) then
+			if _chatThread then
+				task.cancel(_chatThread);
+				_chatThread = nil;
+			end
+			if not on then
+				return;
+			end
+			FlatIdent_12479 = 1;
+		end
+	end
+end
+local _qThread;
+local function startAQ(on)
+	if _qThread then
+		local FlatIdent_8C13B = 0;
+		while true do
+			if (FlatIdent_8C13B == 0) then
+				task.cancel(_qThread);
+				_qThread = nil;
+				break;
+			end
+		end
+	end
+	if not on then
+		return;
+	end
+	_qThread = task.spawn(function()
+		while T.AutoQueue do
+			local FlatIdent_773DC = 0;
+			while true do
+				if (FlatIdent_773DC == 0) then
+					pcall(function()
+						ReplicatedStorage.Remotes.Matchmaking.JoinQueue:InvokeServer("1v1");
+					end);
+					task.wait(5);
+					break;
+				end
+			end
+		end
+	end);
+end
+local _ptpActive, _ptpHooks = false, {};
+local PTP_F = {Daggers=true,Bow=true,Slingshot=true};
+local _ptpAtt = setmetatable({}, {__mode="k"});
+local function ptpT()
+	local m = getRoot(LocalPlayer.Character);
+	if not m then
+		return nil;
+	end
+	local best, bestD = nil, math.huge;
+	for _, p in ipairs(Players:GetPlayers()) do
+		if (p ~= LocalPlayer) then
+			local FlatIdent_97A1A = 0;
+			local h;
+			while true do
+				if (FlatIdent_97A1A == 0) then
+					h = p.Character and p.Character:FindFirstChild("Head");
+					if h then
+						local FlatIdent_69785 = 0;
+						local d;
+						while true do
+							if (0 == FlatIdent_69785) then
+								d = (m.Position - h.Position).Magnitude;
+								if (d < bestD) then
+									local FlatIdent_2BB2A = 0;
+									while true do
+										if (FlatIdent_2BB2A == 0) then
+											bestD = d;
+											best = h;
+											break;
+										end
+									end
+								end
+								break;
+							end
+						end
+					end
+					break;
+				end
+			end
+		end
+	end
+	return best;
+end
+local function ptpA(part)
+	local FlatIdent_24439 = 0;
+	while true do
+		if (FlatIdent_24439 == 2) then
+			part.Massless = true;
+			task.spawn(function()
+				while _ptpActive and part and part.Parent do
+					local FlatIdent_568D2 = 0;
+					local h;
+					while true do
+						if (FlatIdent_568D2 == 0) then
+							h = ptpT();
+							if (h and h.Parent) then
+								part.AssemblyLinearVelocity = Vector3.zero;
+								part.AssemblyAngularVelocity = Vector3.zero;
+								part.CFrame = h.CFrame;
+							end
+							FlatIdent_568D2 = 1;
+						end
+						if (FlatIdent_568D2 == 1) then
+							RunService.Heartbeat:Wait();
+							break;
+						end
+					end
+				end
+			end);
+			break;
+		end
+		if (FlatIdent_24439 == 0) then
+			if not (part and part:IsA("BasePart")) then
+				return;
+			end
+			if _ptpAtt[part] then
+				return;
+			end
+			FlatIdent_24439 = 1;
+		end
+		if (FlatIdent_24439 == 1) then
+			_ptpAtt[part] = true;
+			part.CanCollide = false;
+			FlatIdent_24439 = 2;
+		end
+	end
+end
+local function ptpH(inst)
+	if not (inst and inst.Parent) then
+		return;
+	end
+	if inst:IsA("BasePart") then
+		ptpA(inst);
+	elseif (inst:IsA("Model") or inst:IsA("Folder")) then
+		for _, d in ipairs(inst:GetDescendants()) do
+			if d:IsA("BasePart") then
+				ptpA(d);
+			end
+		end
+	end
+end
+local function startPTP(on)
+	_ptpActive = false;
+	for _, c in ipairs(_ptpHooks) do
+		pcall(function()
+			c:Disconnect();
+		end);
+	end
+	_ptpHooks = {};
+	_ptpAtt = setmetatable({}, {__mode="k"});
+	if not on then
+		return;
+	end
+	_ptpActive = true;
+	for _, ch in ipairs(workspace:GetChildren()) do
+		if PTP_F[ch.Name] then
+			local FlatIdent_5BFFE = 0;
+			while true do
+				if (FlatIdent_5BFFE == 0) then
+					for _, d in ipairs(ch:GetDescendants()) do
+						ptpH(d);
+					end
+					table.insert(_ptpHooks, ch.DescendantAdded:Connect(ptpH));
+					break;
+				end
+			end
+		end
+	end
+end
+local function a2t(id)
+	local s, objs = pcall(function()
+		return game:GetObjects(id);
+	end);
+	if (s and objs and (#objs > 0)) then
+		for i = 1, #objs do
+			if objs[i]:IsA("Animation") then
+				return objs[i].AnimationId;
+			end
+		end
+	end
+	return id;
+end
+local danceObj = Instance.new("Animation");
+danceObj.AnimationId = a2t("rbxassetid://92281817840531");
+local function runGlitch(c)
+	if not T.GlitchDance then
+		return;
+	end
+	local h = c and getHum(c);
+	if not h then
+		return;
+	end
+	pcall(function()
+		local FlatIdent_69CC8 = 0;
+		local tr;
+		while true do
+			if (FlatIdent_69CC8 == 0) then
+				for _, t in next, h:GetPlayingAnimationTracks() do
+					t:Stop();
+				end
+				tr = h:LoadAnimation(danceObj);
+				FlatIdent_69CC8 = 1;
+			end
+			if (FlatIdent_69CC8 == 2) then
+				tr:AdjustSpeed(99999);
+				tr.Stopped:Connect(function()
+					if (T.GlitchDance and c.Parent) then
+						runGlitch(c);
+					end
+				end);
+				break;
+			end
+			if (FlatIdent_69CC8 == 1) then
+				tr.Priority = Enum.AnimationPriority.Action4;
+				tr:Play();
+				FlatIdent_69CC8 = 2;
+			end
+		end
+	end);
+end
+LocalPlayer.CharacterAdded:Connect(function(c)
+	if T.GlitchDance then
+		c:WaitForChild("Humanoid", 10);
+		task.wait(0.2);
+		runGlitch(c);
+	end
+end);
+local function monDeath(char, plr)
+	local h = char:WaitForChild("Humanoid", 5);
+	if not h then
+		return;
+	end
+	if char:GetAttribute("__axd") then
+		return;
+	end
+	char:SetAttribute("__axd", true);
+	h.Died:Connect(function()
+		local FlatIdent_91F32 = 0;
+		while true do
+			if (1 == FlatIdent_91F32) then
+				if (T.CustomDeathSound and S.LockedTarget and (S.LockedTarget.Character == char)) then
+					playAudio(Audio.DeathA, 0.7);
+					task.delay(0.05, function()
+						playAudio(Audio.DeathB, 0.7);
+					end);
+				end
+				break;
+			end
+			if (FlatIdent_91F32 == 0) then
+				if (plr and (plr == LocalPlayer)) then
+					return;
+				end
+				if (char.Name == LocalPlayer.Name) then
+					return;
+				end
+				FlatIdent_91F32 = 1;
+			end
+		end
+	end);
+end
+local function hookP(p)
+	if p.Character then
+		task.spawn(monDeath, p.Character, p);
+	end
+	p.CharacterAdded:Connect(function(c)
+		task.spawn(monDeath, c, p);
+	end);
+end
+for _, p in ipairs(Players:GetPlayers()) do
+	hookP(p);
+end
+Players.PlayerAdded:Connect(hookP);
+local ESP = {};
+local SKEL = {{"Head","UpperTorso"},{"UpperTorso","LowerTorso"},{"UpperTorso","LeftUpperArm"},{"LeftUpperArm","LeftLowerArm"},{"LeftLowerArm","LeftHand"},{"UpperTorso","RightUpperArm"},{"RightUpperArm","RightLowerArm"},{"RightLowerArm","RightHand"},{"LowerTorso","LeftUpperLeg"},{"LeftUpperLeg","LeftLowerLeg"},{"LeftLowerLeg","LeftFoot"},{"LowerTorso","RightUpperLeg"},{"RightUpperLeg","RightLowerLeg"},{"RightLowerLeg","RightFoot"}};
+local function remESP(p)
+	local o = ESP[p];
+	if not o then
+		return;
+	end
+	pcall(function()
+		o.Box:Remove();
+		o.Name:Remove();
+		o.HP:Remove();
+		o.Dist:Remove();
+		o.Weapon:Remove();
+		o.Tracer:Remove();
+		if o.Skel then
+			for _, l in ipairs(o.Skel) do
+				l:Remove();
+			end
+		end
+	end);
+	ESP[p] = nil;
+end
+local function drawESP()
+	if (not T.Visuals or isLobby()) then
+		local FlatIdent_D7F6 = 0;
+		while true do
+			if (FlatIdent_D7F6 == 0) then
+				for p in pairs(ESP) do
+					remESP(p);
+				end
+				return;
+			end
+		end
+	end
+	for _, p in ipairs(Players:GetPlayers()) do
+		if ((p == LocalPlayer) or not isEnemy(p)) then
+			continue;
+		end
+		local char = p.Character;
+		local hrp, hum = getRoot(char), getHum(char);
+		if (hrp and hum and (hum.Health > 0)) then
+			local tPos, tVis = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0, 3, 0));
+			local bPos, bVis = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3.5, 0));
+			if (tVis and bVis) then
+				local o = ESP[p];
+				if (not o and Drawing) then
+					local FlatIdent_7F2F1 = 0;
+					while true do
+						if (FlatIdent_7F2F1 == 2) then
+							o.Dist.Center = true;
+							o.Dist.Outline = true;
+							o.Dist.Color = Color3.fromRGB(230, 230, 230);
+							o.Weapon.Size = 11;
+							FlatIdent_7F2F1 = 3;
+						end
+						if (FlatIdent_7F2F1 == 3) then
+							o.Weapon.Center = true;
+							o.Weapon.Outline = true;
+							o.Weapon.Color = Color3.fromRGB(200, 200, 200);
+							o.Tracer.Thickness = 1;
+							FlatIdent_7F2F1 = 4;
+						end
+						if (FlatIdent_7F2F1 == 1) then
+							o.Name.Center = true;
+							o.Name.Outline = true;
+							o.HP.Thickness = 2;
+							o.Dist.Size = 11;
+							FlatIdent_7F2F1 = 2;
+						end
+						if (0 == FlatIdent_7F2F1) then
+							o = {Box=Drawing.new("Square"),Name=Drawing.new("Text"),HP=Drawing.new("Line"),Dist=Drawing.new("Text"),Weapon=Drawing.new("Text"),Tracer=Drawing.new("Line"),Skel={}};
+							o.Box.Filled = false;
+							o.Box.Thickness = 1;
+							o.Name.Size = 13;
+							FlatIdent_7F2F1 = 1;
+						end
+						if (FlatIdent_7F2F1 == 4) then
+							for i = 1, #SKEL do
+								local FlatIdent_96219 = 0;
+								local l;
+								while true do
+									if (FlatIdent_96219 == 0) then
+										l = Drawing.new("Line");
+										l.Thickness = 1;
+										FlatIdent_96219 = 1;
+									end
+									if (FlatIdent_96219 == 1) then
+										l.Visible = false;
+										o.Skel[i] = l;
+										break;
+									end
+								end
+							end
+							ESP[p] = o;
+							break;
+						end
+					end
+				end
+				if o then
+					local FlatIdent_1466E = 0;
+					local h;
+					local w;
+					local x;
+					local ds;
+					local col;
+					local pct;
+					local myHrp;
+					while true do
+						if (FlatIdent_1466E == 1) then
+							ds = isDesyncing(char);
+							col = (ds and Color3.fromRGB(255, 100, 0)) or (T.ESPChams and Color3.fromRGB(0, 255, 100)) or Color3.fromRGB(255, 50, 50);
+							o.Box.Visible = T.ESPBox and T.ShowTargetESP;
+							FlatIdent_1466E = 2;
+						end
+						if (FlatIdent_1466E == 5) then
+							o.HP.From = Vector2.new(x - 5, bPos.Y);
+							o.HP.To = Vector2.new(x - 5, bPos.Y - (h * pct));
+							o.HP.Color = Color3.fromRGB(0, 255, 0):Lerp(Color3.fromRGB(255, 0, 0), 1 - pct);
+							FlatIdent_1466E = 6;
+						end
+						if (FlatIdent_1466E == 3) then
+							o.Name.Visible = T.ESPName and T.ShowTargetESP;
+							o.Name.Position = Vector2.new(tPos.X, tPos.Y - 15);
+							o.Name.Text = p.DisplayName or p.Name;
+							FlatIdent_1466E = 4;
+						end
+						if (FlatIdent_1466E == 4) then
+							o.Name.Color = Color3.fromRGB(255, 255, 255);
+							pct = hum.Health / hum.MaxHealth;
+							o.HP.Visible = T.ESPHealth and T.ShowTargetESP;
+							FlatIdent_1466E = 5;
+						end
+						if (FlatIdent_1466E == 8) then
+							o.Tracer.Visible = T.ESPTracer and T.ShowTargetESP;
+							if o.Tracer.Visible then
+								local FlatIdent_6A77C = 0;
+								local vp;
+								while true do
+									if (FlatIdent_6A77C == 1) then
+										o.Tracer.To = Vector2.new(bPos.X, bPos.Y);
+										o.Tracer.Color = col;
+										break;
+									end
+									if (FlatIdent_6A77C == 0) then
+										vp = Camera.ViewportSize;
+										o.Tracer.From = Vector2.new(vp.X / 2, vp.Y);
+										FlatIdent_6A77C = 1;
+									end
+								end
+							end
+							for i, c in ipairs(SKEL) do
+								local FlatIdent_4D7AE = 0;
+								local l;
+								while true do
+									if (FlatIdent_4D7AE == 1) then
+										if l.Visible then
+											local FlatIdent_2E949 = 0;
+											local pA;
+											local pB;
+											while true do
+												if (FlatIdent_2E949 == 1) then
+													if (pA and pB) then
+														local sA, vA = Camera:WorldToViewportPoint(pA.Position);
+														local sB, vB = Camera:WorldToViewportPoint(pB.Position);
+														if (vA and vB) then
+															local FlatIdent_7FF98 = 0;
+															while true do
+																if (FlatIdent_7FF98 == 0) then
+																	l.From = Vector2.new(sA.X, sA.Y);
+																	l.To = Vector2.new(sB.X, sB.Y);
+																	FlatIdent_7FF98 = 1;
+																end
+																if (FlatIdent_7FF98 == 1) then
+																	l.Color = col;
+																	break;
+																end
+															end
+														else
+															l.Visible = false;
+														end
+													else
+														l.Visible = false;
+													end
+													break;
+												end
+												if (FlatIdent_2E949 == 0) then
+													pA = char:FindFirstChild(c[1]);
+													pB = char:FindFirstChild(c[2]);
+													FlatIdent_2E949 = 1;
+												end
+											end
+										end
+										break;
+									end
+									if (FlatIdent_4D7AE == 0) then
+										l = o.Skel[i];
+										l.Visible = T.SkeletonESP and T.Visuals;
+										FlatIdent_4D7AE = 1;
+									end
+								end
+							end
+							break;
+						end
+						if (0 == FlatIdent_1466E) then
+							h = math.abs(tPos.Y - bPos.Y);
+							w = h * 0.55;
+							x = tPos.X - (w / 2);
+							FlatIdent_1466E = 1;
+						end
+						if (FlatIdent_1466E == 6) then
+							myHrp = getRoot(LocalPlayer.Character);
+							o.Dist.Visible = T.ESPDistance and T.ShowTargetESP;
+							if myHrp then
+								local FlatIdent_15AD5 = 0;
+								while true do
+									if (FlatIdent_15AD5 == 0) then
+										o.Dist.Text = math.floor((myHrp.Position - hrp.Position).Magnitude) .. "m";
+										o.Dist.Position = Vector2.new(tPos.X, bPos.Y + 3);
+										break;
+									end
+								end
+							end
+							FlatIdent_1466E = 7;
+						end
+						if (FlatIdent_1466E == 7) then
+							o.Weapon.Visible = T.ESPWeapon and T.ShowTargetESP;
+							o.Weapon.Text = getEnemyWeapon(p) .. ((ds and " [DS]") or "");
+							o.Weapon.Position = Vector2.new(tPos.X, tPos.Y - 28);
+							FlatIdent_1466E = 8;
+						end
+						if (FlatIdent_1466E == 2) then
+							o.Box.Position = Vector2.new(x, tPos.Y);
+							o.Box.Size = Vector2.new(w, h);
+							o.Box.Color = col;
+							FlatIdent_1466E = 3;
+						end
+					end
+				end
+			else
+				remESP(p);
+			end
+		else
+			remESP(p);
+		end
+	end
+end
+RunService.RenderStepped:Connect(drawESP);
+Players.PlayerRemoving:Connect(remESP);
+local FOVCircle = nil;
+if Drawing then
+	local FlatIdent_81E73 = 0;
+	while true do
+		if (FlatIdent_81E73 == 1) then
+			FOVCircle.Thickness = 2;
+			FOVCircle.Transparency = 0.7;
+			break;
+		end
+		if (FlatIdent_81E73 == 0) then
+			FOVCircle = Drawing.new("Circle");
+			FOVCircle.Visible = true;
+			FlatIdent_81E73 = 1;
+		end
+	end
+end
+local fovRot = 0;
+RunService.RenderStepped:Connect(function(dt)
+	if not FOVCircle then
+		return;
+	end
+	if (not T.Visuals or not T.FOVCircleVisible or isLobby()) then
+		local FlatIdent_6CC8A = 0;
+		while true do
+			if (FlatIdent_6CC8A == 0) then
+				FOVCircle.Visible = false;
+				return;
+			end
+		end
+	end
+	FOVCircle.Visible = true;
+	FOVCircle.Radius = O.FOVRadius;
+	local t = getSticky();
+	local hasW = getObjId() ~= nil;
+	local pos;
+	if (hasW and t and t.Character) then
+		local FlatIdent_77E28 = 0;
+		local h;
+		while true do
+			if (FlatIdent_77E28 == 0) then
+				h = t.Character:FindFirstChild("HitboxHeadSmall") or t.Character:FindFirstChild("Head");
+				if h then
+					local FlatIdent_6E2DE = 0;
+					local sp;
+					local vis;
+					while true do
+						if (FlatIdent_6E2DE == 0) then
+							sp, vis = Camera:WorldToViewportPoint(h.Position);
+							if vis then
+								pos = Vector2.new(sp.X, sp.Y);
+							end
+							break;
+						end
+					end
+				end
+				break;
+			end
+		end
+	end
+	FOVCircle.Position = pos or UserInputService:GetMouseLocation();
+	fovRot = fovRot + (dt * 2);
+	if T.FOVColoured then
+		local FlatIdent_17A1A = 0;
+		local r;
+		local g;
+		while true do
+			if (FlatIdent_17A1A == 0) then
+				r = math.floor((math.sin(fovRot) * 127) + 128);
+				g = math.floor((math.cos(fovRot) * 127) + 128);
+				FlatIdent_17A1A = 1;
+			end
+			if (FlatIdent_17A1A == 1) then
+				FOVCircle.Color = Color3.fromRGB(r, g, 255);
+				break;
+			end
+		end
+	else
+		FOVCircle.Color = O.FOVColor;
+	end
+	FOVCircle.Filled = O.FOVFilled;
+end);
+local CrossLines = {};
+RunService.RenderStepped:Connect(function()
+	local FlatIdent_52E72 = 0;
+	local center;
+	local gap;
+	local len;
+	local th;
+	local col;
+	local dirs;
+	while true do
+		if (FlatIdent_52E72 == 0) then
+			if not Drawing then
+				return;
+			end
+			if (not T.Crosshair or not T.Visuals) then
+				local FlatIdent_19471 = 0;
+				while true do
+					if (FlatIdent_19471 == 0) then
+						for _, l in pairs(CrossLines) do
+							l.Visible = false;
+						end
+						return;
+					end
+				end
+			end
+			FlatIdent_52E72 = 1;
+		end
+		if (1 == FlatIdent_52E72) then
+			center = Camera.ViewportSize / 2;
+			gap, len, th, col = 5, O.CrosshairLength, O.CrosshairThickness, O.CrosshairColor;
+			FlatIdent_52E72 = 2;
+		end
+		if (FlatIdent_52E72 == 2) then
+			dirs = {{0,-1},{1,0},{0,1},{-1,0}};
+			for i, d in ipairs(dirs) do
+				local FlatIdent_125A6 = 0;
+				local l;
+				while true do
+					if (FlatIdent_125A6 == 3) then
+						l.Visible = true;
+						break;
+					end
+					if (FlatIdent_125A6 == 2) then
+						l.Color = col;
+						l.Thickness = th;
+						FlatIdent_125A6 = 3;
+					end
+					if (FlatIdent_125A6 == 0) then
+						l = CrossLines[i];
+						if not l then
+							l = Drawing.new("Line");
+							l.Visible = false;
+							CrossLines[i] = l;
+						end
+						FlatIdent_125A6 = 1;
+					end
+					if (1 == FlatIdent_125A6) then
+						l.From = Vector2.new(center.X + (d[1] * gap), center.Y + (d[2] * gap));
+						l.To = Vector2.new(center.X + (d[1] * (gap + len)), center.Y + (d[2] * (gap + len)));
+						FlatIdent_125A6 = 2;
+					end
+				end
+			end
+			break;
+		end
+	end
+end);
+local _xrayM = {};
+local function startXRay(on)
+	if on then
+		for _, v in ipairs(workspace:GetDescendants()) do
+			if v:IsA("BasePart") then
+				local FlatIdent_75DAF = 0;
+				while true do
+					if (FlatIdent_75DAF == 0) then
+						_xrayM[v] = true;
+						v.LocalTransparencyModifier = 0.5;
+						break;
+					end
+				end
+			end
+		end
+	else
+		local FlatIdent_82400 = 0;
+		while true do
+			if (FlatIdent_82400 == 0) then
+				for v in pairs(_xrayM) do
+					if (v and v.Parent) then
+						v.LocalTransparencyModifier = 0;
+					end
+				end
+				_xrayM = {};
+				break;
+			end
+		end
+	end
+end
+local _origD = LocalPlayer.DisplayName;
+local function startNS(on)
+	if (on and (O.SpoofName ~= "")) then
+		pcall(function()
+			LocalPlayer.DisplayName = O.SpoofName;
+		end);
+	else
+		pcall(function()
+			LocalPlayer.DisplayName = _origD;
+		end);
+	end
+end
+local function ser()
+	local FlatIdent_4A232 = 0;
+	local d;
+	while true do
+		if (FlatIdent_4A232 == 0) then
+			d = {Toggles={},Options={}};
+			for k, v in pairs(T) do
+				if (type(v) == "boolean") then
+					d.Toggles[k] = v;
+				end
+			end
+			FlatIdent_4A232 = 1;
+		end
+		if (1 == FlatIdent_4A232) then
+			for k, v in pairs(O) do
+				if ((type(v) == "number") or (type(v) == "string")) then
+					d.Options[k] = v;
+				elseif (typeof(v) == "Color3") then
+					d.Options[k] = {__c=true,r=v.R,g=v.G,b=v.B};
+				end
+			end
+			return d;
+		end
+	end
+end
+local function app(d)
+	local FlatIdent_30DDB = 0;
+	while true do
+		if (FlatIdent_30DDB == 0) then
+			if (type(d) ~= "table") then
+				return;
+			end
+			if d.Toggles then
+				for k, v in pairs(d.Toggles) do
+					if ((T[k] ~= nil) and (type(v) == "boolean")) then
+						T[k] = v;
+					end
+				end
+			end
+			FlatIdent_30DDB = 1;
+		end
+		if (FlatIdent_30DDB == 1) then
+			if d.Options then
+				for k, v in pairs(d.Options) do
+					if ((type(v) == "table") and v.__c) then
+						O[k] = Color3.new(v.r or 1, v.g or 1, v.b or 1);
+					elseif (O[k] ~= nil) then
+						O[k] = v;
+					end
+				end
+			end
+			break;
+		end
+	end
+end
+local function saveCfg(n)
+	local FlatIdent_792A9 = 0;
+	local ok;
+	while true do
+		if (FlatIdent_792A9 == 0) then
+			n = san(n);
+			ok = pcall(function()
+				local FlatIdent_849C1 = 0;
+				while true do
+					if (FlatIdent_849C1 == 0) then
+						if not writefile then
+							error("no writefile");
+						end
+						writefile(cfgPath(n), HttpService:JSONEncode(ser()));
+						break;
+					end
+				end
+			end);
+			FlatIdent_792A9 = 1;
+		end
+		if (FlatIdent_792A9 == 1) then
+			if ok then
+				saveMeta(n);
+			end
+			return ok;
+		end
+	end
+end
+local function loadCfg(n)
+	local FlatIdent_50385 = 0;
+	local ok;
+	while true do
+		if (FlatIdent_50385 == 1) then
+			if ok then
+				saveMeta(n);
+			end
+			return ok;
+		end
+		if (0 == FlatIdent_50385) then
+			n = san(n);
+			ok = pcall(function()
+				if not readfile then
+					error("no readfile");
+				end
+				local p = cfgPath(n);
+				if not (isfile and isfile(p)) then
+					error("no file");
+				end
+				app(HttpService:JSONDecode(readfile(p)));
+				AntiBan.Enabled = true;
+				AntiBan.AutoRejoin = true;
+				AntiBan.RejoinCooldown = O.RejoinCooldown or 5;
+			end);
+			FlatIdent_50385 = 1;
+		end
+	end
+end
+pcall(function()
+	if (writefile and isfile) then
+		local FlatIdent_40F18 = 0;
+		while true do
+			if (FlatIdent_40F18 == 0) then
+				if not isfile(cfgPath("default")) then
+					writefile(cfgPath("default"), HttpService:JSONEncode(ser()));
+				end
+				if not isfile(META_FILE) then
+					writefile(META_FILE, HttpService:JSONEncode({last="default"}));
+				end
+				break;
+			end
+		end
+	end
+end);
+local Cc = {Bg=Color3.fromRGB(15, 15, 15),Bg2=Color3.fromRGB(22, 22, 22),Bg3=Color3.fromRGB(32, 32, 32),Accent=Color3.fromRGB(0, 180, 255),On=Color3.fromRGB(35, 120, 75),Off=Color3.fromRGB(55, 55, 55),Text=Color3.fromRGB(230, 230, 230),Text2=Color3.fromRGB(150, 150, 150),Handle=Color3.fromRGB(80, 80, 100),Save=Color3.fromRGB(35, 130, 90),Load=Color3.fromRGB(60, 90, 170),Danger=Color3.fromRGB(180, 60, 60),Music=Color3.fromRGB(120, 60, 180),MusicOn=Color3.fromRGB(150, 80, 220),Wallbang=Color3.fromRGB(255, 140, 0)};
+local function getGuiParent()
+	local FlatIdent_1FBA = 0;
+	local ok;
+	local hui;
+	while true do
+		if (FlatIdent_1FBA == 1) then
+			return LocalPlayer:WaitForChild("PlayerGui");
+		end
+		if (0 == FlatIdent_1FBA) then
+			ok, hui = pcall(function()
+				return gethui and gethui();
+			end);
+			if (ok and hui) then
+				return hui;
+			end
+			FlatIdent_1FBA = 1;
+		end
+	end
+end
+local SG = Instance.new("ScreenGui");
+SG.Name = "ElysienV2";
+SG.ResetOnSpawn = false;
+SG.IgnoreGuiInset = true;
+SG.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+SG.DisplayOrder = 999999;
+SG.Parent = getGuiParent();
+local Main = Instance.new("Frame");
+Main.Size = UDim2.fromOffset(620, 380);
+Main.Position = UDim2.new(0.5, -310, 0.5, -190);
+Main.BackgroundColor3 = Cc.Bg;
+Main.BorderSizePixel = 0;
+Main.Active = true;
+Main.ClipsDescendants = true;
+Main.Parent = SG;
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10);
+local mainSt = Instance.new("UIStroke", Main);
+mainSt.Color = Color3.fromRGB(50, 50, 60);
+mainSt.Thickness = 1;
+local function makeDrag(f, h)
+	local FlatIdent_839BC = 0;
+	local d;
+	local ds;
+	local sp;
+	while true do
+		if (FlatIdent_839BC == 0) then
+			d, ds, sp = false, nil, nil;
+			h.InputBegan:Connect(function(i)
+				if ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseButton1)) then
+					local FlatIdent_2B812 = 0;
+					while true do
+						if (FlatIdent_2B812 == 0) then
+							d = true;
+							ds = i.Position;
+							FlatIdent_2B812 = 1;
+						end
+						if (FlatIdent_2B812 == 1) then
+							sp = f.Position;
+							break;
+						end
+					end
+				end
+			end);
+			FlatIdent_839BC = 1;
+		end
+		if (FlatIdent_839BC == 1) then
+			h.InputEnded:Connect(function(i)
+				if ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseButton1)) then
+					d = false;
+				end
+			end);
+			UserInputService.InputChanged:Connect(function(i)
+				if (d and ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseMovement))) then
+					local FlatIdent_8EAFE = 0;
+					local dd;
+					while true do
+						if (FlatIdent_8EAFE == 0) then
+							dd = i.Position - ds;
+							f.Position = UDim2.new(sp.X.Scale, sp.X.Offset + dd.X, sp.Y.Scale, sp.Y.Offset + dd.Y);
+							break;
+						end
+					end
+				end
+			end);
+			break;
+		end
+	end
+end
+local RH = Instance.new("Frame");
+RH.Size = UDim2.fromOffset(26, 26);
+RH.Position = UDim2.new(1, -26, 1, -26);
+RH.BackgroundColor3 = Cc.Handle;
+RH.BorderSizePixel = 0;
+RH.ZIndex = 2000;
+RH.Parent = Main;
+Instance.new("UICorner", RH).CornerRadius = UDim.new(0, 5);
+local RHt = Instance.new("TextLabel");
+RHt.Size = UDim2.fromScale(1, 1);
+RHt.BackgroundTransparency = 1;
+RHt.Text = "◢";
+RHt.TextColor3 = Color3.fromRGB(220, 220, 240);
+RHt.TextSize = 14;
+RHt.Font = Enum.Font.Code;
+RHt.ZIndex = 2001;
+RHt.Parent = RH;
+do
+	local FlatIdent_3579C = 0;
+	local r;
+	local sp;
+	local ss;
+	while true do
+		if (FlatIdent_3579C == 1) then
+			RH.InputEnded:Connect(function(i)
+				if ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseButton1)) then
+					r = false;
+				end
+			end);
+			UserInputService.InputChanged:Connect(function(i)
+				if (r and ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseMovement))) then
+					local d = i.Position - sp;
+					Main.Size = UDim2.fromOffset(math.clamp(ss.X + d.X, 360, 1400), math.clamp(ss.Y + d.Y, 260, 900));
+				end
+			end);
+			break;
+		end
+		if (FlatIdent_3579C == 0) then
+			r, sp, ss = false, nil, nil;
+			RH.InputBegan:Connect(function(i)
+				if ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseButton1)) then
+					r = true;
+					sp = i.Position;
+					ss = Main.AbsoluteSize;
+				end
+			end);
+			FlatIdent_3579C = 1;
+		end
+	end
+end
+local Header = Instance.new("Frame");
+Header.Size = UDim2.new(1, 0, 0, 40);
+Header.BackgroundColor3 = Cc.Bg2;
+Header.BorderSizePixel = 0;
+Header.Parent = Main;
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 10);
+local Title = Instance.new("TextLabel");
+Title.Size = UDim2.new(1, -160, 1, 0);
+Title.Position = UDim2.fromOffset(14, 0);
+Title.BackgroundTransparency = 1;
+Title.Text = "ELYSIEN v2 · Full (Wallbang TP)";
+Title.TextColor3 = Cc.Accent;
+Title.TextSize = 15;
+Title.Font = Enum.Font.Code;
+Title.TextXAlignment = Enum.TextXAlignment.Left;
+Title.Parent = Header;
+local Hint = Instance.new("TextLabel");
+Hint.Size = UDim2.new(0, 120, 1, 0);
+Hint.Position = UDim2.new(1, -180, 0, 0);
+Hint.BackgroundTransparency = 1;
+Hint.Text = "drag ◢ resize";
+Hint.TextColor3 = Cc.Text2;
+Hint.TextSize = 10;
+Hint.Font = Enum.Font.Code;
+Hint.TextXAlignment = Enum.TextXAlignment.Right;
+Hint.Parent = Header;
+local CloseBtn = Instance.new("TextButton");
+CloseBtn.Size = UDim2.fromOffset(56, 28);
+CloseBtn.Position = UDim2.new(1, -64, 0, 6);
+CloseBtn.BackgroundColor3 = Cc.Danger;
+CloseBtn.Text = "EXIT";
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255);
+CloseBtn.Font = Enum.Font.Code;
+CloseBtn.TextSize = 11;
+CloseBtn.Parent = Header;
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 5);
+CloseBtn.MouseButton1Click:Connect(function()
+	local FlatIdent_3E100 = 0;
+	while true do
+		if (FlatIdent_3E100 == 2) then
+			stopMusic();
+			pcall(function()
+				SG:Destroy();
+			end);
+			break;
+		end
+		if (FlatIdent_3E100 == 1) then
+			if FOVCircle then
+				FOVCircle:Remove();
+			end
+			for _, l in pairs(CrossLines) do
+				pcall(function()
+					l:Remove();
+				end);
+			end
+			FlatIdent_3E100 = 2;
+		end
+		if (FlatIdent_3E100 == 0) then
+			for k in pairs(T) do
+				T[k] = false;
+			end
+			for p in pairs(ESP) do
+				remESP(p);
+			end
+			FlatIdent_3E100 = 1;
+		end
+	end
+end);
+makeDrag(Main, Header);
+local StatusLbl = Instance.new("TextLabel");
+StatusLbl.Size = UDim2.new(1, -20, 0, 20);
+StatusLbl.Position = UDim2.new(0, 10, 1, -24);
+StatusLbl.BackgroundTransparency = 1;
+StatusLbl.Text = S.RagebotStatusText;
+StatusLbl.TextColor3 = Cc.Accent;
+StatusLbl.TextSize = 11;
+StatusLbl.Font = Enum.Font.Code;
+StatusLbl.TextXAlignment = Enum.TextXAlignment.Left;
+StatusLbl.Parent = Main;
+RunService.Heartbeat:Connect(function()
+	if (StatusLbl and StatusLbl.Parent) then
+		StatusLbl.Visible = T.ShowRagebotStatus;
+		StatusLbl.Text = S.RagebotStatusText;
+	end
+end);
+local Nav = Instance.new("Frame");
+Nav.Size = UDim2.new(0, 110, 1, -64);
+Nav.Position = UDim2.fromOffset(0, 40);
+Nav.BackgroundColor3 = Color3.fromRGB(18, 18, 18);
+Nav.BorderSizePixel = 0;
+Nav.Parent = Main;
+local NavScroll = Instance.new("ScrollingFrame");
+NavScroll.Size = UDim2.fromScale(1, 1);
+NavScroll.BackgroundTransparency = 1;
+NavScroll.BorderSizePixel = 0;
+NavScroll.ScrollBarThickness = 4;
+NavScroll.ScrollBarImageColor3 = Cc.Accent;
+NavScroll.CanvasSize = UDim2.new(0, 0, 0, 0);
+NavScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+NavScroll.Parent = Nav;
+local NavList = Instance.new("UIListLayout");
+NavList.Padding = UDim.new(0, 2);
+NavList.Parent = NavScroll;
+local NavPad = Instance.new("UIPadding");
+NavPad.PaddingTop = UDim.new(0, 4);
+NavPad.PaddingBottom = UDim.new(0, 8);
+NavPad.Parent = NavScroll;
+local Display = Instance.new("Frame");
+Display.Size = UDim2.new(1, -110, 1, -64);
+Display.Position = UDim2.fromOffset(110, 40);
+Display.BackgroundTransparency = 1;
+Display.Parent = Main;
+local Registry = {};
+local ToggleRefreshers = {};
+local function regPage(name)
+	local FlatIdent_8DDE4 = 0;
+	local btn;
+	local scroll;
+	local layout;
+	local pad;
+	while true do
+		if (FlatIdent_8DDE4 == 3) then
+			scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+			scroll.ScrollBarThickness = 4;
+			scroll.ScrollBarImageColor3 = Cc.Accent;
+			scroll.Visible = false;
+			scroll.Parent = Display;
+			FlatIdent_8DDE4 = 4;
+		end
+		if (5 == FlatIdent_8DDE4) then
+			pad.PaddingBottom = UDim.new(0, 20);
+			pad.PaddingLeft = UDim.new(0, 4);
+			pad.PaddingRight = UDim.new(0, 4);
+			pad.Parent = scroll;
+			Registry[name] = {Btn=btn,Screen=scroll};
+			FlatIdent_8DDE4 = 6;
+		end
+		if (FlatIdent_8DDE4 == 6) then
+			btn.MouseButton1Click:Connect(function()
+				local FlatIdent_64501 = 0;
+				while true do
+					if (FlatIdent_64501 == 1) then
+						btn.TextColor3 = Cc.Accent;
+						btn.BackgroundTransparency = 0;
+						FlatIdent_64501 = 2;
+					end
+					if (FlatIdent_64501 == 0) then
+						for _, e in pairs(Registry) do
+							local FlatIdent_11D0C = 0;
+							while true do
+								if (FlatIdent_11D0C == 1) then
+									e.Btn.BackgroundTransparency = 1;
+									break;
+								end
+								if (0 == FlatIdent_11D0C) then
+									e.Screen.Visible = false;
+									e.Btn.TextColor3 = Cc.Text2;
+									FlatIdent_11D0C = 1;
+								end
+							end
+						end
+						scroll.Visible = true;
+						FlatIdent_64501 = 1;
+					end
+					if (FlatIdent_64501 == 2) then
+						btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28);
+						break;
+					end
+				end
+			end);
+			return scroll;
+		end
+		if (4 == FlatIdent_8DDE4) then
+			layout = Instance.new("UIListLayout");
+			layout.Padding = UDim.new(0, 4);
+			layout.Parent = scroll;
+			pad = Instance.new("UIPadding");
+			pad.PaddingTop = UDim.new(0, 4);
+			FlatIdent_8DDE4 = 5;
+		end
+		if (FlatIdent_8DDE4 == 0) then
+			btn = Instance.new("TextButton");
+			btn.Size = UDim2.new(1, 0, 0, 36);
+			btn.BackgroundColor3 = Cc.Bg3;
+			btn.BackgroundTransparency = 1;
+			btn.Text = "  " .. name:upper();
+			FlatIdent_8DDE4 = 1;
+		end
+		if (2 == FlatIdent_8DDE4) then
+			scroll = Instance.new("ScrollingFrame");
+			scroll.Size = UDim2.new(1, -12, 1, -12);
+			scroll.Position = UDim2.fromOffset(6, 6);
+			scroll.BackgroundTransparency = 1;
+			scroll.CanvasSize = UDim2.new(0, 0, 0, 0);
+			FlatIdent_8DDE4 = 3;
+		end
+		if (FlatIdent_8DDE4 == 1) then
+			btn.TextColor3 = Cc.Text2;
+			btn.Font = Enum.Font.Code;
+			btn.TextSize = 12;
+			btn.TextXAlignment = Enum.TextXAlignment.Left;
+			btn.Parent = NavScroll;
+			FlatIdent_8DDE4 = 2;
+		end
+	end
+end
+local function addToggle(scroller, label, key, cb)
+	local btn = Instance.new("TextButton");
+	btn.Size = UDim2.new(1, 0, 0, 40);
+	btn.BackgroundColor3 = (T[key] and Cc.On) or Cc.Off;
+	btn.Text = "";
+	btn.AutoButtonColor = false;
+	btn.Parent = scroller;
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8);
+	local st = Instance.new("UIStroke", btn);
+	st.Color = Color3.fromRGB(60, 60, 70);
+	st.Thickness = 1;
+	local lbl = Instance.new("TextLabel");
+	lbl.Size = UDim2.new(1, -100, 1, 0);
+	lbl.Position = UDim2.fromOffset(14, 0);
+	lbl.BackgroundTransparency = 1;
+	lbl.Text = label;
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255);
+	lbl.Font = Enum.Font.GothamMedium;
+	lbl.TextSize = 13;
+	lbl.TextXAlignment = Enum.TextXAlignment.Left;
+	lbl.Parent = btn;
+	local state = Instance.new("TextLabel");
+	state.Size = UDim2.fromOffset(80, 24);
+	state.Position = UDim2.new(1, -88, 0.5, -12);
+	state.BackgroundColor3 = Color3.fromRGB(0, 0, 0);
+	state.BackgroundTransparency = 0.6;
+	state.Text = (T[key] and "ON") or "OFF";
+	state.TextColor3 = Color3.fromRGB(255, 255, 255);
+	state.Font = Enum.Font.Code;
+	state.TextSize = 11;
+	state.Parent = btn;
+	Instance.new("UICorner", state).CornerRadius = UDim.new(0, 4);
+	local function refresh()
+		local FlatIdent_7573E = 0;
+		local on;
+		while true do
+			if (FlatIdent_7573E == 1) then
+				state.Text = (on and "ON") or "OFF";
+				break;
+			end
+			if (FlatIdent_7573E == 0) then
+				on = (T[key] and true) or false;
+				btn.BackgroundColor3 = (on and Cc.On) or Cc.Off;
+				FlatIdent_7573E = 1;
+			end
+		end
+	end
+	refresh();
+	btn.MouseButton1Click:Connect(function()
+		local FlatIdent_EF32 = 0;
+		while true do
+			if (0 == FlatIdent_EF32) then
+				T[key] = not T[key];
+				refresh();
+				FlatIdent_EF32 = 1;
+			end
+			if (FlatIdent_EF32 == 1) then
+				if cb then
+					pcall(cb, T[key]);
+				end
+				task.defer(function()
+					pcall(saveCfg, loadMeta());
+				end);
+				break;
+			end
+		end
+	end);
+	table.insert(ToggleRefreshers, refresh);
+	return btn;
+end
+local function addDropdown(scroller, label, values, key, cb)
+	local FlatIdent_87256 = 0;
+	local row;
+	local lbl;
+	local combo;
+	local ptr;
+	local refresh;
+	while true do
+		if (FlatIdent_87256 == 1) then
+			lbl = Instance.new("TextLabel");
+			lbl.Size = UDim2.new(0.45, -10, 1, 0);
+			lbl.Position = UDim2.fromOffset(14, 0);
+			lbl.BackgroundTransparency = 1;
+			lbl.Text = label;
+			lbl.TextColor3 = Cc.Text;
+			FlatIdent_87256 = 2;
+		end
+		if (FlatIdent_87256 == 2) then
+			lbl.Font = Enum.Font.GothamMedium;
+			lbl.TextSize = 12;
+			lbl.TextXAlignment = Enum.TextXAlignment.Left;
+			lbl.Parent = row;
+			combo = Instance.new("TextButton");
+			combo.Size = UDim2.new(0.55, -14, 0, 30);
+			FlatIdent_87256 = 3;
+		end
+		if (FlatIdent_87256 == 5) then
+			function refresh()
+				local FlatIdent_21669 = 0;
+				while true do
+					if (FlatIdent_21669 == 0) then
+						combo.Text = tostring(O[key]);
+						for i, v in ipairs(values) do
+							if (v == O[key]) then
+								ptr = i;
+							end
+						end
+						break;
+					end
+				end
+			end
+			combo.MouseButton1Click:Connect(function()
+				local FlatIdent_91BD6 = 0;
+				while true do
+					if (FlatIdent_91BD6 == 2) then
+						task.defer(function()
+							pcall(saveCfg, loadMeta());
+						end);
+						break;
+					end
+					if (1 == FlatIdent_91BD6) then
+						combo.Text = tostring(values[ptr]);
+						if cb then
+							pcall(cb, values[ptr]);
+						end
+						FlatIdent_91BD6 = 2;
+					end
+					if (FlatIdent_91BD6 == 0) then
+						ptr = (ptr % #values) + 1;
+						O[key] = values[ptr];
+						FlatIdent_91BD6 = 1;
+					end
+				end
+			end);
+			table.insert(ToggleRefreshers, refresh);
+			return row;
+		end
+		if (FlatIdent_87256 == 3) then
+			combo.Position = UDim2.new(0.45, 0, 0.5, -15);
+			combo.BackgroundColor3 = Color3.fromRGB(45, 55, 75);
+			combo.Text = tostring(O[key]);
+			combo.TextColor3 = Cc.Accent;
+			combo.Font = Enum.Font.Code;
+			combo.TextSize = 12;
+			FlatIdent_87256 = 4;
+		end
+		if (4 == FlatIdent_87256) then
+			combo.Parent = row;
+			combo.TextTruncate = Enum.TextTruncate.AtEnd;
+			Instance.new("UICorner", combo).CornerRadius = UDim.new(0, 6);
+			ptr = 1;
+			for i, v in ipairs(values) do
+				if (v == O[key]) then
+					ptr = i;
+					break;
+				end
+			end
+			refresh = nil;
+			FlatIdent_87256 = 5;
+		end
+		if (FlatIdent_87256 == 0) then
+			row = Instance.new("Frame");
+			row.Size = UDim2.new(1, 0, 0, 40);
+			row.BackgroundColor3 = Cc.Bg3;
+			row.BorderSizePixel = 0;
+			row.Parent = scroller;
+			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8);
+			FlatIdent_87256 = 1;
+		end
+	end
+end
+local function addSlider(scroller, label, mn, mx, def, key, suffix)
+	local row = Instance.new("Frame");
+	row.Size = UDim2.new(1, 0, 0, 50);
+	row.BackgroundColor3 = Cc.Bg3;
+	row.BorderSizePixel = 0;
+	row.Parent = scroller;
+	Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8);
+	local lbl = Instance.new("TextLabel");
+	lbl.Size = UDim2.new(0.7, 0, 0, 18);
+	lbl.Position = UDim2.fromOffset(14, 6);
+	lbl.BackgroundTransparency = 1;
+	lbl.Text = label;
+	lbl.TextColor3 = Cc.Text;
+	lbl.Font = Enum.Font.GothamMedium;
+	lbl.TextSize = 12;
+	lbl.TextXAlignment = Enum.TextXAlignment.Left;
+	lbl.Parent = row;
+	local val = Instance.new("TextLabel");
+	val.Size = UDim2.new(0, 80, 0, 18);
+	val.Position = UDim2.new(1, -94, 0, 6);
+	val.BackgroundTransparency = 1;
+	val.Text = tostring(O[key] or def) .. (suffix or "");
+	val.TextColor3 = Cc.Accent;
+	val.Font = Enum.Font.Code;
+	val.TextSize = 12;
+	val.TextXAlignment = Enum.TextXAlignment.Right;
+	val.Parent = row;
+	local bar = Instance.new("TextButton");
+	bar.Size = UDim2.new(1, -28, 0, 16);
+	bar.Position = UDim2.fromOffset(14, 28);
+	bar.BackgroundColor3 = Color3.fromRGB(45, 45, 45);
+	bar.Text = "";
+	bar.Parent = row;
+	Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 8);
+	local fill = Instance.new("Frame");
+	local pct = math.clamp(((O[key] or def) - mn) / (mx - mn), 0, 1);
+	fill.Size = UDim2.fromScale(pct, 1);
+	fill.BackgroundColor3 = Cc.Accent;
+	fill.BorderSizePixel = 0;
+	fill.Parent = bar;
+	Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 8);
+	local function refresh()
+		local FlatIdent_550FD = 0;
+		local v;
+		local p;
+		while true do
+			if (FlatIdent_550FD == 1) then
+				fill.Size = UDim2.fromScale(p, 1);
+				val.Text = tostring(v) .. (suffix or "");
+				break;
+			end
+			if (FlatIdent_550FD == 0) then
+				v = O[key] or def;
+				p = math.clamp((v - mn) / (mx - mn), 0, 1);
+				FlatIdent_550FD = 1;
+			end
+		end
+	end
+	local lastSaveAt = 0;
+	local function upd(input)
+		local FlatIdent_49774 = 0;
+		local r;
+		local v;
+		while true do
+			if (FlatIdent_49774 == 2) then
+				val.Text = tostring(v) .. (suffix or "");
+				if ((tick() - lastSaveAt) > 0.8) then
+					lastSaveAt = tick();
+					task.defer(function()
+						pcall(saveCfg, loadMeta());
+					end);
+				end
+				break;
+			end
+			if (0 == FlatIdent_49774) then
+				r = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1);
+				v = math.floor(mn + ((mx - mn) * r));
+				FlatIdent_49774 = 1;
+			end
+			if (FlatIdent_49774 == 1) then
+				O[key] = v;
+				fill.Size = UDim2.fromScale(r, 1);
+				FlatIdent_49774 = 2;
+			end
+		end
+	end
+	local d = false;
+	bar.InputBegan:Connect(function(i)
+		if ((i.UserInputType == Enum.UserInputType.MouseButton1) or (i.UserInputType == Enum.UserInputType.Touch)) then
+			d = true;
+			upd(i);
+		end
+	end);
+	UserInputService.InputChanged:Connect(function(i)
+		if (d and ((i.UserInputType == Enum.UserInputType.MouseMovement) or (i.UserInputType == Enum.UserInputType.Touch))) then
+			upd(i);
+		end
+	end);
+	UserInputService.InputEnded:Connect(function(i)
+		if ((i.UserInputType == Enum.UserInputType.MouseButton1) or (i.UserInputType == Enum.UserInputType.Touch)) then
+			if d then
+				local FlatIdent_33242 = 0;
+				while true do
+					if (FlatIdent_33242 == 0) then
+						d = false;
+						task.defer(function()
+							pcall(saveCfg, loadMeta());
+						end);
+						break;
+					end
+				end
+			end
+		end
+	end);
+	table.insert(ToggleRefreshers, refresh);
+	return row;
+end
+local function addInput(scroller, label, key, default)
+	local row = Instance.new("Frame");
+	row.Size = UDim2.new(1, 0, 0, 40);
+	row.BackgroundColor3 = Cc.Bg3;
+	row.BorderSizePixel = 0;
+	row.Parent = scroller;
+	Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8);
+	local lbl = Instance.new("TextLabel");
+	lbl.Size = UDim2.new(0.4, -10, 1, 0);
+	lbl.Position = UDim2.fromOffset(14, 0);
+	lbl.BackgroundTransparency = 1;
+	lbl.Text = label;
+	lbl.TextColor3 = Cc.Text;
+	lbl.Font = Enum.Font.GothamMedium;
+	lbl.TextSize = 12;
+	lbl.TextXAlignment = Enum.TextXAlignment.Left;
+	lbl.Parent = row;
+	local box = Instance.new("TextBox");
+	box.Size = UDim2.new(0.6, -14, 0, 30);
+	box.Position = UDim2.new(0.4, 0, 0.5, -15);
+	box.BackgroundColor3 = Color3.fromRGB(45, 45, 55);
+	box.Text = tostring(O[key] or default or "");
+	box.TextColor3 = Cc.Text;
+	box.Font = Enum.Font.Code;
+	box.TextSize = 12;
+	box.ClearTextOnFocus = false;
+	box.Parent = row;
+	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6);
+	box:GetPropertyChangedSignal("Text"):Connect(function()
+		O[key] = box.Text;
+	end);
+	box.FocusLost:Connect(function()
+		task.defer(function()
+			pcall(saveCfg, loadMeta());
+		end);
+	end);
+	table.insert(ToggleRefreshers, function()
+		box.Text = tostring(O[key] or "");
+	end);
+	return row;
+end
+local function addButton(scroller, label, color, cb)
+	local FlatIdent_56891 = 0;
+	local btn;
+	while true do
+		if (FlatIdent_56891 == 0) then
+			btn = Instance.new("TextButton");
+			btn.Size = UDim2.new(1, 0, 0, 36);
+			btn.BackgroundColor3 = color or Cc.Bg3;
+			btn.Text = label;
+			FlatIdent_56891 = 1;
+		end
+		if (FlatIdent_56891 == 2) then
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8);
+			btn.MouseButton1Click:Connect(function()
+				pcall(cb);
+			end);
+			return btn;
+		end
+		if (FlatIdent_56891 == 1) then
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255);
+			btn.Font = Enum.Font.GothamBold;
+			btn.TextSize = 12;
+			btn.Parent = scroller;
+			FlatIdent_56891 = 2;
+		end
+	end
+end
+local function header(scroller, text, color)
+	local lbl = Instance.new("TextLabel");
+	lbl.Size = UDim2.new(1, 0, 0, 24);
+	lbl.BackgroundTransparency = 1;
+	lbl.Text = text;
+	lbl.TextColor3 = color or Cc.Accent;
+	lbl.Font = Enum.Font.GothamBold;
+	lbl.TextSize = 12;
+	lbl.TextXAlignment = Enum.TextXAlignment.Left;
+	lbl.Parent = scroller;
+	return lbl;
+end
+local function refreshAll()
+	for _, fn in ipairs(ToggleRefreshers) do
+		pcall(fn);
+	end
+end
+local Combat = regPage("Combat");
+header(Combat, "── AIM ASSIST ──");
+addToggle(Combat, "Aimbot (우클릭 조준)", "Aimbot");
+addToggle(Combat, "Sticky Aim", "StickyAim");
+addToggle(Combat, "Show FOV (Aimbot)", "AimbotShowFOV");
+addSlider(Combat, "Aimbot FOV", 50, 500, 150, "AimbotFOV", "px");
+addSlider(Combat, "Aimbot Smooth", 1, 100, 10, "AimbotSmooth", "%");
+header(Combat, "── ⚡ WALLBANG → TP ──", Cc.Wallbang);
+addToggle(Combat, "Wallbang TP (쏘면 TP)", "Wallbang");
+addSlider(Combat, "Wallbang Range", 50, 500, 200, "WallbangRange", "st");
+addSlider(Combat, "Wallbang Cooldown", 1, 10, 4, "WallbangCooldown", "d");
+local wbStatus = Instance.new("TextLabel");
+wbStatus.Size = UDim2.new(1, 0, 0, 22);
+wbStatus.BackgroundTransparency = 1;
+wbStatus.Text = "⚡ Wallbang: Ready";
+wbStatus.TextColor3 = Cc.Wallbang;
+wbStatus.Font = Enum.Font.GothamBold;
+wbStatus.TextSize = 11;
+wbStatus.TextXAlignment = Enum.TextXAlignment.Left;
+wbStatus.Parent = Combat;
+task.spawn(function()
+	while true do
+		local FlatIdent_21608 = 0;
+		while true do
+			if (FlatIdent_21608 == 0) then
+				task.wait(0.5);
+				if (wbStatus and wbStatus.Parent) then
+					if (tick() < WallbangState.Cooldown) then
+						local FlatIdent_25EC5 = 0;
+						while true do
+							if (FlatIdent_25EC5 == 0) then
+								wbStatus.Text = "⚡ Wallbang: Cooldown (" .. string.format("%.1f", WallbangState.Cooldown - tick()) .. "s)";
+								wbStatus.TextColor3 = Color3.fromRGB(150, 150, 150);
+								break;
+							end
+						end
+					elseif ((WallbangState.LastShotAt > 0) and ((tick() - WallbangState.LastShotAt) < 3)) then
+						local FlatIdent_89852 = 0;
+						while true do
+							if (FlatIdent_89852 == 0) then
+								wbStatus.Text = "⚡ Wallbang: TRIGGERED #" .. WallbangState.ShotCount;
+								wbStatus.TextColor3 = Color3.fromRGB(255, 100, 50);
+								break;
+							end
+						end
+					else
+						local FlatIdent_6EB64 = 0;
+						while true do
+							if (FlatIdent_6EB64 == 0) then
+								wbStatus.Text = "⚡ Wallbang: Ready (" .. WallbangState.ShotCount .. "x)";
+								wbStatus.TextColor3 = Cc.Wallbang;
+								break;
+							end
+						end
+					end
+				end
+				break;
+			end
+		end
+	end
+end);
+header(Combat, "── MAIN COMBAT ──");
+addToggle(Combat, "Ragebot Tracker", "Ragebot");
+addToggle(Combat, "Ragebot Fire", "DesyncRage");
+addToggle(Combat, "Void Spam", "VoidSpam");
+addToggle(Combat, "Silent Aim", "SilentAim");
+addToggle(Combat, "Anti-Katana / Shield", "AntiKatana");
+addToggle(Combat, "No Recoil", "NoRecoil");
+addToggle(Combat, "No Spread", "NoSpread");
+addToggle(Combat, "Rapid Fire", "RapidFire");
+addToggle(Combat, "Triggerbot", "Triggerbot");
+header(Combat, "── HvH / RESOLVER ──");
+addToggle(Combat, "HvH Threat Scoring", "HvHMode");
+addToggle(Combat, "Far Check (원거리 예측)", "FarCheck");
+addToggle(Combat, "Desync Resolver", "DesyncResolver");
+addToggle(Combat, "Position Verify (사격 전 인증)", "PositionVerify");
+addToggle(Combat, "Strict Verify (실패 시 취소)", "StrictVerify");
+header(Combat, "── TARGETING ──");
+addDropdown(Combat, "Target Part", {"Head","UpperTorso","HumanoidRootPart"}, "TargetPart");
+addDropdown(Combat, "Silent Aim Part", {"Head","Torso","HumanoidRootPart"}, "SilentAimPart");
+addDropdown(Combat, "Aimbot Part", {"Head","UpperTorso","HumanoidRootPart"}, "AimbotPart");
+addSlider(Combat, "Silent Hit Chance", 0, 100, 100, "SilentAimHitChance", "%");
+addSlider(Combat, "Max Acquire Distance", 50, 800, 300, "MaxAcquisitionDistance", "st");
+header(Combat, "── FAR CHECK / VERIFY ──");
+addSlider(Combat, "Far Distance", 100, 1500, 350, "FarCheckDistance", "st");
+addSlider(Combat, "Velocity Lead", 0, 30, 9, "VelocityLead", "ms");
+addSlider(Combat, "Desync Threshold", 2, 30, 6, "DesyncThreshold", "st");
+addSlider(Combat, "Verify Samples", 2, 10, 4, "VerifySamples", "x");
+addSlider(Combat, "Verify Tolerance", 2, 30, 8, "VerifyTolerance", "st");
+header(Combat, "── HvH WEIGHTS ──");
+addSlider(Combat, "Angle Bonus", 0, 500, 250, "HvHAngleBonus", "pt");
+addSlider(Combat, "Close Bonus", 0, 300, 120, "HvHCloseBonus", "pt");
+addSlider(Combat, "Low HP Bonus", 0, 200, 60, "HvHLowHPBonus", "pt");
+addSlider(Combat, "Desync Bonus", 0, 300, 150, "HvHDesyncBonus", "pt");
+local Pl = regPage("Player");
+addToggle(Pl, "Glitch Dance", "GlitchDance", function(v)
+	if (v and LocalPlayer.Character) then
+		runGlitch(LocalPlayer.Character);
+	end
+end);
+addToggle(Pl, "Anti-Aim", "AntiAim");
+addToggle(Pl, "Infinite Jump", "InfiniteJump");
+addToggle(Pl, "Fly", "Fly", startFly);
+addToggle(Pl, "Noclip", "Noclip", startNoclip);
+addToggle(Pl, "Third Person", "ThirdPerson", startTP);
+addToggle(Pl, "Anti Flash", "AntiFlash", startAF);
+addToggle(Pl, "Anti Smoke", "AntiSmoke", startAS);
+addToggle(Pl, "Auto Respawn", "AutoRespawn", startAR);
+addToggle(Pl, "Unlock Movement", "UnlockMovement", startUnlock);
+addToggle(Pl, "Slide Boost", "SlideBoost");
+addToggle(Pl, "Infinite Double Jump", "InfiniteDoubleJump");
+addToggle(Pl, "Instant ADS", "InstantADS");
+addDropdown(Pl, "Anti-Aim Mode", {"Spinbot","Backwards","Jitter","Disabled"}, "AAMode");
+addSlider(Pl, "Walk Speed", 16, 200, 16, "WalkSpeed", "");
+addSlider(Pl, "Jump Power", 50, 300, 50, "JumpPower", "");
+addSlider(Pl, "Fly Speed", 25, 300, 50, "FlySpeed", "st");
+header(Pl, "── 🛡 AUTO ANTI-BAN ──", Color3.fromRGB(220, 100, 50));
+local abStatusLbl = Instance.new("TextLabel");
+abStatusLbl.Size = UDim2.new(1, 0, 0, 22);
+abStatusLbl.BackgroundTransparency = 1;
+abStatusLbl.Text = "🛡 Anti-Ban: ACTIVE (자동)";
+abStatusLbl.TextColor3 = Color3.fromRGB(220, 100, 50);
+abStatusLbl.Font = Enum.Font.GothamBold;
+abStatusLbl.TextSize = 11;
+abStatusLbl.TextXAlignment = Enum.TextXAlignment.Left;
+abStatusLbl.Parent = Pl;
+task.spawn(function()
+	while true do
+		local FlatIdent_7690C = 0;
+		while true do
+			if (FlatIdent_7690C == 0) then
+				task.wait(2);
+				if (abStatusLbl and abStatusLbl.Parent) then
+					abStatusLbl.Text = string.format("🛡 Anti-Ban: %s | Kick: %d", (AntiBan.Enabled and "ACTIVE") or "OFF", AntiBan.KickCount);
+				end
+				break;
+			end
+		end
+	end
+end);
+local Vs = regPage("Visuals");
+header(Vs, "── ESP / OVERLAY ──");
+addToggle(Vs, "Enable Visuals", "Visuals");
+addToggle(Vs, "FOV Circle", "FOVCircleVisible");
+addToggle(Vs, "Rainbow FOV", "FOVColoured");
+addToggle(Vs, "Box ESP", "ESPBox");
+addToggle(Vs, "Name ESP", "ESPName");
+addToggle(Vs, "Health Bar", "ESPHealth");
+addToggle(Vs, "Distance ESP", "ESPDistance");
+addToggle(Vs, "Weapon ESP", "ESPWeapon");
+addToggle(Vs, "Tracer ESP", "ESPTracer");
+addToggle(Vs, "Chams", "ESPChams");
+addToggle(Vs, "Skeleton ESP", "SkeletonESP");
+addToggle(Vs, "Show Target ESP", "ShowTargetESP");
+addToggle(Vs, "Show Status Text", "ShowRagebotStatus");
+addToggle(Vs, "X-Ray", "XRay", startXRay);
+addToggle(Vs, "Crosshair", "Crosshair");
+addToggle(Vs, "Bullet Tracers", "BulletTracers");
+addSlider(Vs, "FOV Radius", 50, 400, 150, "FOVRadius", "px");
+addSlider(Vs, "Crosshair Length", 5, 40, 15, "CrosshairLength", "px");
+addSlider(Vs, "Crosshair Thickness", 1, 6, 2, "CrosshairThickness", "px");
+header(Vs, "── ♪ MUSIC PLAYER ♪ ──", Cc.Music);
+addToggle(Vs, "Music Enabled", "MusicEnabled", function(v)
+	if v then
+		playMusic(O.MusicTrack);
+	else
+		stopMusic();
+	end
+end);
+addDropdown(Vs, "Track", MusicOrder, "MusicTrack", function(v)
+	if T.MusicEnabled then
+		playMusic(v);
+	end
+end);
+addSlider(Vs, "Volume", 0, 100, 50, "MusicVolume", "%");
+do
+	task.defer(function()
+		for _, row in ipairs(Vs:GetChildren()) do
+			if row:IsA("Frame") then
+				local lbl = row:FindFirstChildWhichIsA("TextLabel");
+				if (lbl and (lbl.Text == "Volume")) then
+					local FlatIdent_30945 = 0;
+					local bar;
+					while true do
+						if (FlatIdent_30945 == 0) then
+							bar = row:FindFirstChildWhichIsA("TextButton");
+							if bar then
+								local FlatIdent_89DA4 = 0;
+								while true do
+									if (FlatIdent_89DA4 == 0) then
+										UserInputService.InputEnded:Connect(function(i)
+											if ((i.UserInputType == Enum.UserInputType.MouseButton1) or (i.UserInputType == Enum.UserInputType.Touch)) then
+												setMusicVolume(O.MusicVolume);
+											end
+										end);
+										bar.MouseButton1Up:Connect(function()
+											setMusicVolume(O.MusicVolume);
+										end);
+										break;
+									end
+								end
+							end
+							break;
+						end
+					end
+				end
+			end
+		end
+	end);
+end
+addToggle(Vs, "Loop Track", "MusicLoop", function(v)
+	if MusicPlayer.Sound then
+		MusicPlayer.Sound.Looped = v;
+	end
+end);
+local PlayStopRow = Instance.new("Frame");
+PlayStopRow.Size = UDim2.new(1, 0, 0, 44);
+PlayStopRow.BackgroundColor3 = Cc.Bg3;
+PlayStopRow.BorderSizePixel = 0;
+PlayStopRow.Parent = Vs;
+Instance.new("UICorner", PlayStopRow).CornerRadius = UDim.new(0, 8);
+local PlayBtn = Instance.new("TextButton");
+PlayBtn.Size = UDim2.new(0.5, -6, 1, -8);
+PlayBtn.Position = UDim2.fromOffset(4, 4);
+PlayBtn.BackgroundColor3 = Cc.MusicOn;
+PlayBtn.Text = "▶  PLAY";
+PlayBtn.TextColor3 = Color3.fromRGB(255, 255, 255);
+PlayBtn.Font = Enum.Font.GothamBold;
+PlayBtn.TextSize = 14;
+PlayBtn.Parent = PlayStopRow;
+Instance.new("UICorner", PlayBtn).CornerRadius = UDim.new(0, 6);
+local StopBtn = Instance.new("TextButton");
+StopBtn.Size = UDim2.new(0.5, -6, 1, -8);
+StopBtn.Position = UDim2.new(0.5, 2, 0, 4);
+StopBtn.BackgroundColor3 = Cc.Danger;
+StopBtn.Text = "■  STOP";
+StopBtn.TextColor3 = Color3.fromRGB(255, 255, 255);
+StopBtn.Font = Enum.Font.GothamBold;
+StopBtn.TextSize = 14;
+StopBtn.Parent = PlayStopRow;
+Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6);
+PlayBtn.MouseButton1Click:Connect(function()
+	local FlatIdent_8C6A9 = 0;
+	while true do
+		if (0 == FlatIdent_8C6A9) then
+			playMusic(O.MusicTrack);
+			T.MusicEnabled = true;
+			FlatIdent_8C6A9 = 1;
+		end
+		if (FlatIdent_8C6A9 == 1) then
+			refreshAll();
+			S.RagebotStatusText = "♪ Playing: " .. tostring(O.MusicTrack);
+			break;
+		end
+	end
+end);
+StopBtn.MouseButton1Click:Connect(function()
+	stopMusic();
+	T.MusicEnabled = false;
+	refreshAll();
+	S.RagebotStatusText = "♪ Music stopped";
+end);
+local MusicInfo = Instance.new("TextLabel");
+MusicInfo.Size = UDim2.new(1, 0, 0, 24);
+MusicInfo.BackgroundTransparency = 1;
+MusicInfo.Text = "♪ Track: " .. tostring(O.MusicTrack);
+MusicInfo.TextColor3 = Cc.Music;
+MusicInfo.Font = Enum.Font.GothamMedium;
+MusicInfo.TextSize = 11;
+MusicInfo.TextXAlignment = Enum.TextXAlignment.Left;
+MusicInfo.Parent = Vs;
+task.spawn(function()
+	while true do
+		local FlatIdent_78F80 = 0;
+		while true do
+			if (FlatIdent_78F80 == 0) then
+				task.wait(0.5);
+				if (MusicInfo and MusicInfo.Parent) then
+					local FlatIdent_F5A6 = 0;
+					local playing;
+					while true do
+						if (FlatIdent_F5A6 == 0) then
+							playing = MusicPlayer.Sound and MusicPlayer.Sound.Playing;
+							MusicInfo.Text = ((playing and "♪ Playing: ") or "♪ Track: ") .. tostring(O.MusicTrack);
+							break;
+						end
+					end
+				end
+				break;
+			end
+		end
+	end
+end);
+local Snd = regPage("Sound");
+addToggle(Snd, "Hit Sound", "CustomHitSound");
+addToggle(Snd, "Shoot Sound", "CustomShootSound");
+addToggle(Snd, "Death Sound", "CustomDeathSound");
+local W = regPage("World");
+addToggle(W, "Skybox Override", "SkyboxOverride", function(v)
+	if v then
+		applySkybox(O.SelectedSky);
+	else
+		local s = Lighting:FindFirstChild("__AxiomSky");
+		if s then
+			s:Destroy();
+		end
+	end
+end);
+addDropdown(W, "Sky Theme", {"Soft Pink","Magenta Twilight","Neon Purple","Pastel Blue","Cotton Candy","Cyberpunk Red","Sunset Gold","Solid Dark","Sakura Blossom","Heaven","Nebula","Deep Space"}, "SelectedSky", function(v)
+	if T.SkyboxOverride then
+		applySkybox(v);
+	end
+end);
+addToggle(W, "Weather (Rain)", "Weather");
+addToggle(W, "Bloom", "Bloom");
+addToggle(W, "Sun Rays", "SunRays");
+addToggle(W, "Atmosphere", "Atmosphere");
+addToggle(W, "Color Correction", "ColorCorrection");
+addToggle(W, "Custom Fog", "CustomFog");
+local Au = regPage("Auto");
+addToggle(Au, "Auto Ban", "AutoBan");
+addToggle(Au, "Collect Drops", "CollectDrops");
+addToggle(Au, "Auto Queue", "AutoQueue", startAQ);
+addToggle(Au, "Chat Spam", "ChatSpam", startChat);
+addToggle(Au, "Projectile TP", "ProjectileTP", startPTP);
+addInput(Au, "Chat Spam Text", "ChatSpamText", "gg");
+addDropdown(Au, "First Ban", {"Riot Shield","Katana","Assault Rifle","Sniper","None"}, "BanFirst");
+addDropdown(Au, "Second Ban", {"Katana","Riot Shield","Sniper","None"}, "BanSecond");
+local Sp = regPage("Spoof");
+addToggle(Sp, "Name Spoofer", "NameSpoofer", startNS);
+addToggle(Sp, "Device Spoofer", "DeviceSpoofer", function(v)
+	if v then
+		pcall(function()
+			local FlatIdent_35D0A = 0;
+			local rep;
+			local fighter;
+			local setCtrls;
+			while true do
+				if (FlatIdent_35D0A == 1) then
+					setCtrls = fighter and fighter:FindFirstChild("SetControls");
+					if setCtrls then
+						setCtrls:FireServer("MouseKeyboard");
+					end
+					break;
+				end
+				if (FlatIdent_35D0A == 0) then
+					rep = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("Replication");
+					fighter = rep and rep:FindFirstChild("Fighter");
+					FlatIdent_35D0A = 1;
+				end
+			end
+		end);
+	end
+end);
+addInput(Sp, "Spoof Name", "SpoofName", "Player");
+local CfgPage = regPage("Config");
+header(CfgPage, "── SAVE / LOAD ──");
+local infoLbl = Instance.new("TextLabel");
+infoLbl.Size = UDim2.new(1, 0, 0, 22);
+infoLbl.BackgroundTransparency = 1;
+infoLbl.Text = "Folder: " .. CONFIG_DIR;
+infoLbl.TextColor3 = Cc.Text2;
+infoLbl.Font = Enum.Font.Code;
+infoLbl.TextSize = 10;
+infoLbl.TextXAlignment = Enum.TextXAlignment.Left;
+infoLbl.Parent = CfgPage;
+local nameRow = Instance.new("Frame");
+nameRow.Size = UDim2.new(1, 0, 0, 40);
+nameRow.BackgroundColor3 = Cc.Bg3;
+nameRow.BorderSizePixel = 0;
+nameRow.Parent = CfgPage;
+Instance.new("UICorner", nameRow).CornerRadius = UDim.new(0, 8);
+local nameBox = Instance.new("TextBox");
+nameBox.Size = UDim2.new(1, -110, 0, 30);
+nameBox.Position = UDim2.fromOffset(14, 5);
+nameBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55);
+nameBox.Text = "myconfig";
+nameBox.PlaceholderText = "config name";
+nameBox.TextColor3 = Cc.Text;
+nameBox.Font = Enum.Font.Code;
+nameBox.TextSize = 12;
+nameBox.ClearTextOnFocus = false;
+nameBox.TextXAlignment = Enum.TextXAlignment.Left;
+nameBox.Parent = nameRow;
+Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 6);
+local saveBtn = Instance.new("TextButton");
+saveBtn.Size = UDim2.fromOffset(80, 30);
+saveBtn.Position = UDim2.new(1, -94, 0, 5);
+saveBtn.BackgroundColor3 = Cc.Save;
+saveBtn.Text = "SAVE";
+saveBtn.TextColor3 = Color3.fromRGB(255, 255, 255);
+saveBtn.Font = Enum.Font.GothamBold;
+saveBtn.TextSize = 12;
+saveBtn.Parent = nameRow;
+Instance.new("UICorner", saveBtn).CornerRadius = UDim.new(0, 6);
+header(CfgPage, "── SAVED CONFIGS ──");
+local listFrame = Instance.new("Frame");
+listFrame.Size = UDim2.new(1, 0, 0, 180);
+listFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24);
+listFrame.BorderSizePixel = 0;
+listFrame.Parent = CfgPage;
+Instance.new("UICorner", listFrame).CornerRadius = UDim.new(0, 6);
+local listScroll = Instance.new("ScrollingFrame");
+listScroll.Size = UDim2.new(1, -8, 1, -8);
+listScroll.Position = UDim2.fromOffset(4, 4);
+listScroll.BackgroundTransparency = 1;
+listScroll.ScrollBarThickness = 3;
+listScroll.CanvasSize = UDim2.new(0, 0, 0, 0);
+listScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+listScroll.Parent = listFrame;
+local listLayout = Instance.new("UIListLayout");
+listLayout.Padding = UDim.new(0, 4);
+listLayout.Parent = listScroll;
+local function rebuildList()
+	for _, c in ipairs(listScroll:GetChildren()) do
+		if c:IsA("Frame") then
+			c:Destroy();
+		end
+	end
+	local names = listCfgs();
+	if (#names == 0) then
+		local FlatIdent_66B51 = 0;
+		local empty;
+		while true do
+			if (FlatIdent_66B51 == 2) then
+				empty.TextColor3 = Cc.Text2;
+				empty.Font = Enum.Font.Code;
+				FlatIdent_66B51 = 3;
+			end
+			if (FlatIdent_66B51 == 4) then
+				empty.Parent = listScroll;
+				return;
+			end
+			if (FlatIdent_66B51 == 0) then
+				empty = Instance.new("TextLabel");
+				empty.Size = UDim2.new(1, 0, 0, 30);
+				FlatIdent_66B51 = 1;
+			end
+			if (FlatIdent_66B51 == 3) then
+				empty.TextSize = 11;
+				empty.TextXAlignment = Enum.TextXAlignment.Left;
+				FlatIdent_66B51 = 4;
+			end
+			if (FlatIdent_66B51 == 1) then
+				empty.BackgroundTransparency = 1;
+				empty.Text = "  (no configs - tap SAVE above)";
+				FlatIdent_66B51 = 2;
+			end
+		end
+	end
+	for _, n in ipairs(names) do
+		local FlatIdent_1369F = 0;
+		local row;
+		local nl;
+		local lb;
+		local db;
+		while true do
+			if (FlatIdent_1369F == 3) then
+				nl.Parent = row;
+				lb = Instance.new("TextButton");
+				lb.Size = UDim2.fromOffset(80, 26);
+				lb.Position = UDim2.new(0.5, 0, 0.5, -13);
+				lb.BackgroundColor3 = Cc.Load;
+				FlatIdent_1369F = 4;
+			end
+			if (FlatIdent_1369F == 4) then
+				lb.Text = "LOAD";
+				lb.TextColor3 = Color3.fromRGB(255, 255, 255);
+				lb.Font = Enum.Font.GothamBold;
+				lb.TextSize = 11;
+				lb.Parent = row;
+				FlatIdent_1369F = 5;
+			end
+			if (FlatIdent_1369F == 7) then
+				Instance.new("UICorner", db).CornerRadius = UDim.new(0, 5);
+				lb.MouseButton1Click:Connect(function()
+					if loadCfg(n) then
+						local FlatIdent_2B4DB = 0;
+						while true do
+							if (FlatIdent_2B4DB == 0) then
+								refreshAll();
+								nameBox.Text = n;
+								FlatIdent_2B4DB = 1;
+							end
+							if (1 == FlatIdent_2B4DB) then
+								if T.SkyboxOverride then
+									applySkybox(O.SelectedSky);
+								end
+								S.RagebotStatusText = "Loaded: " .. n;
+								break;
+							end
+						end
+					end
+				end);
+				db.MouseButton1Click:Connect(function()
+					local FlatIdent_85382 = 0;
+					while true do
+						if (FlatIdent_85382 == 0) then
+							pcall(function()
+								if delfile then
+									delfile(cfgPath(n));
+								end
+							end);
+							rebuildList();
+							break;
+						end
+					end
+				end);
+				break;
+			end
+			if (FlatIdent_1369F == 2) then
+				nl.Text = n;
+				nl.TextColor3 = Cc.Text;
+				nl.Font = Enum.Font.GothamMedium;
+				nl.TextSize = 12;
+				nl.TextXAlignment = Enum.TextXAlignment.Left;
+				FlatIdent_1369F = 3;
+			end
+			if (FlatIdent_1369F == 1) then
+				Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6);
+				nl = Instance.new("TextLabel");
+				nl.Size = UDim2.new(0.5, -10, 1, 0);
+				nl.Position = UDim2.fromOffset(14, 0);
+				nl.BackgroundTransparency = 1;
+				FlatIdent_1369F = 2;
+			end
+			if (FlatIdent_1369F == 6) then
+				db.Text = "DEL";
+				db.TextColor3 = Color3.fromRGB(255, 255, 255);
+				db.Font = Enum.Font.GothamBold;
+				db.TextSize = 11;
+				db.Parent = row;
+				FlatIdent_1369F = 7;
+			end
+			if (FlatIdent_1369F == 5) then
+				Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 5);
+				db = Instance.new("TextButton");
+				db.Size = UDim2.fromOffset(60, 26);
+				db.Position = UDim2.new(1, -70, 0.5, -13);
+				db.BackgroundColor3 = Cc.Danger;
+				FlatIdent_1369F = 6;
+			end
+			if (0 == FlatIdent_1369F) then
+				row = Instance.new("Frame");
+				row.Size = UDim2.new(1, 0, 0, 36);
+				row.BackgroundColor3 = Cc.Bg3;
+				row.BorderSizePixel = 0;
+				row.Parent = listScroll;
+				FlatIdent_1369F = 1;
+			end
+		end
+	end
+end
+saveBtn.MouseButton1Click:Connect(function()
+	local n = nameBox.Text;
+	if (n == "") then
+		n = "config";
+	end
+	local ok = saveCfg(n);
+	rebuildList();
+	S.RagebotStatusText = (ok and ("Saved: " .. n)) or "Save failed";
+end);
+addButton(CfgPage, "⟳ Refresh List", Color3.fromRGB(50, 80, 140), function()
+	rebuildList();
+end);
+header(CfgPage, "── PUBLIC PRESETS ──");
+for _, pName in ipairs({"Legit","Rage","Public Safe","Melee Only","HvH Sweat"}) do
+	local data = PUBLIC_CONFIGS[pName];
+	if data then
+		local FlatIdent_529BD = 0;
+		local row;
+		local nm;
+		local ap;
+		local sv;
+		while true do
+			if (FlatIdent_529BD == 7) then
+				Instance.new("UICorner", sv).CornerRadius = UDim.new(0, 5);
+				ap.MouseButton1Click:Connect(function()
+					local FlatIdent_1A2FD = 0;
+					while true do
+						if (FlatIdent_1A2FD == 1) then
+							if T.SkyboxOverride then
+								applySkybox(O.SelectedSky);
+							end
+							S.RagebotStatusText = "Applied: " .. pName;
+							break;
+						end
+						if (FlatIdent_1A2FD == 0) then
+							for k, v in pairs(data) do
+								if ((T[k] ~= nil) and (type(v) == "boolean")) then
+									T[k] = v;
+								elseif (O[k] ~= nil) then
+									O[k] = v;
+								end
+							end
+							refreshAll();
+							FlatIdent_1A2FD = 1;
+						end
+					end
+				end);
+				sv.MouseButton1Click:Connect(function()
+					local FlatIdent_3E900 = 0;
+					local sT;
+					local sO;
+					local ok;
+					while true do
+						if (FlatIdent_3E900 == 0) then
+							sT, sO = {}, {};
+							for k, v in pairs(T) do
+								sT[k] = v;
+							end
+							FlatIdent_3E900 = 1;
+						end
+						if (FlatIdent_3E900 == 3) then
+							for k in pairs(O) do
+								O[k] = sO[k];
+							end
+							refreshAll();
+							FlatIdent_3E900 = 4;
+						end
+						if (FlatIdent_3E900 == 1) then
+							for k, v in pairs(O) do
+								sO[k] = v;
+							end
+							for k, v in pairs(data) do
+								if ((T[k] ~= nil) and (type(v) == "boolean")) then
+									T[k] = v;
+								elseif (O[k] ~= nil) then
+									O[k] = v;
+								end
+							end
+							FlatIdent_3E900 = 2;
+						end
+						if (FlatIdent_3E900 == 2) then
+							ok = saveCfg(pName);
+							for k in pairs(T) do
+								T[k] = sT[k];
+							end
+							FlatIdent_3E900 = 3;
+						end
+						if (FlatIdent_3E900 == 4) then
+							rebuildList();
+							S.RagebotStatusText = (ok and ("Preset saved: " .. pName)) or "Save failed";
+							break;
+						end
+					end
+				end);
+				break;
+			end
+			if (FlatIdent_529BD == 5) then
+				Instance.new("UICorner", ap).CornerRadius = UDim.new(0, 5);
+				sv = Instance.new("TextButton");
+				sv.Size = UDim2.fromOffset(70, 28);
+				sv.Position = UDim2.new(1, -80, 0.5, -14);
+				sv.BackgroundColor3 = Cc.Save;
+				FlatIdent_529BD = 6;
+			end
+			if (6 == FlatIdent_529BD) then
+				sv.Text = "SAVE AS";
+				sv.TextColor3 = Color3.fromRGB(255, 255, 255);
+				sv.Font = Enum.Font.GothamBold;
+				sv.TextSize = 11;
+				sv.Parent = row;
+				FlatIdent_529BD = 7;
+			end
+			if (4 == FlatIdent_529BD) then
+				ap.Text = "APPLY";
+				ap.TextColor3 = Color3.fromRGB(255, 255, 255);
+				ap.Font = Enum.Font.GothamBold;
+				ap.TextSize = 11;
+				ap.Parent = row;
+				FlatIdent_529BD = 5;
+			end
+			if (FlatIdent_529BD == 0) then
+				row = Instance.new("Frame");
+				row.Size = UDim2.new(1, 0, 0, 40);
+				row.BackgroundColor3 = Cc.Bg3;
+				row.BorderSizePixel = 0;
+				row.Parent = CfgPage;
+				FlatIdent_529BD = 1;
+			end
+			if (2 == FlatIdent_529BD) then
+				nm.Text = pName;
+				nm.TextColor3 = Cc.Text;
+				nm.Font = Enum.Font.GothamMedium;
+				nm.TextSize = 12;
+				nm.TextXAlignment = Enum.TextXAlignment.Left;
+				FlatIdent_529BD = 3;
+			end
+			if (1 == FlatIdent_529BD) then
+				Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6);
+				nm = Instance.new("TextLabel");
+				nm.Size = UDim2.new(0.4, -10, 1, 0);
+				nm.Position = UDim2.fromOffset(14, 0);
+				nm.BackgroundTransparency = 1;
+				FlatIdent_529BD = 2;
+			end
+			if (FlatIdent_529BD == 3) then
+				nm.Parent = row;
+				ap = Instance.new("TextButton");
+				ap.Size = UDim2.fromOffset(90, 28);
+				ap.Position = UDim2.new(0.4, 0, 0.5, -14);
+				ap.BackgroundColor3 = Color3.fromRGB(70, 90, 130);
+				FlatIdent_529BD = 4;
+			end
+		end
+	end
+end
+rebuildList();
+Registry.Combat.Btn.TextColor3 = Cc.Accent;
+Registry.Combat.Btn.BackgroundTransparency = 0;
+Registry.Combat.Btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28);
+Registry.Combat.Screen.Visible = true;
+local FloatBtn = Instance.new("TextButton");
+FloatBtn.Name = "ElysienFloatToggle";
+FloatBtn.Size = UDim2.fromOffset(140, 40);
+FloatBtn.Position = UDim2.new(0, 16, 0.5, -20);
+FloatBtn.BackgroundColor3 = Cc.Bg2;
+FloatBtn.Text = "☰  ELYSIEN";
+FloatBtn.TextColor3 = Cc.Accent;
+FloatBtn.Font = Enum.Font.GothamBold;
+FloatBtn.TextSize = 14;
+FloatBtn.AutoButtonColor = false;
+FloatBtn.ZIndex = 9000;
+FloatBtn.Parent = SG;
+Instance.new("UICorner", FloatBtn).CornerRadius = UDim.new(0, 10);
+local fStroke = Instance.new("UIStroke", FloatBtn);
+fStroke.Color = Cc.Accent;
+fStroke.Thickness = 1;
+fStroke.Transparency = 0.4;
+FloatBtn.MouseEnter:Connect(function()
+	TweenService:Create(FloatBtn, TweenInfo.new(0.15), {BackgroundColor3=Cc.Bg3}):Play();
+end);
+FloatBtn.MouseLeave:Connect(function()
+	TweenService:Create(FloatBtn, TweenInfo.new(0.15), {BackgroundColor3=Cc.Bg2}):Play();
+end);
+do
+	local FlatIdent_57669 = 0;
+	local d;
+	local ds;
+	local sp;
+	while true do
+		if (FlatIdent_57669 == 1) then
+			FloatBtn.InputEnded:Connect(function(i)
+				if ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseButton1)) then
+					d = false;
+				end
+			end);
+			UserInputService.InputChanged:Connect(function(i)
+				if (d and ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseMovement))) then
+					local dd = i.Position - ds;
+					if (dd.Magnitude > 6) then
+						local FlatIdent_85D76 = 0;
+						while true do
+							if (FlatIdent_85D76 == 0) then
+								FloatBtn.Position = UDim2.new(sp.X.Scale, sp.X.Offset + dd.X, sp.Y.Scale, sp.Y.Offset + dd.Y);
+								FloatBtn:SetAttribute("dragged", true);
+								break;
+							end
+						end
+					end
+				end
+			end);
+			break;
+		end
+		if (FlatIdent_57669 == 0) then
+			d, ds, sp = false, nil, nil;
+			FloatBtn.InputBegan:Connect(function(i)
+				if ((i.UserInputType == Enum.UserInputType.Touch) or (i.UserInputType == Enum.UserInputType.MouseButton1)) then
+					local FlatIdent_2AA3B = 0;
+					while true do
+						if (FlatIdent_2AA3B == 0) then
+							d = true;
+							ds = i.Position;
+							FlatIdent_2AA3B = 1;
+						end
+						if (FlatIdent_2AA3B == 1) then
+							sp = FloatBtn.Position;
+							FloatBtn:SetAttribute("dragged", false);
+							break;
+						end
+					end
+				end
+			end);
+			FlatIdent_57669 = 1;
+		end
+	end
+end
+FloatBtn.MouseButton1Click:Connect(function()
+	local FlatIdent_7C675 = 0;
+	while true do
+		if (FlatIdent_7C675 == 1) then
+			if Main.Visible then
+				local FlatIdent_5471B = 0;
+				while true do
+					if (FlatIdent_5471B == 0) then
+						FloatBtn.Text = "✕  HIDE";
+						FloatBtn.TextColor3 = Cc.Accent;
+						break;
+					end
+				end
+			else
+				local FlatIdent_220FE = 0;
+				while true do
+					if (FlatIdent_220FE == 0) then
+						FloatBtn.Text = "☰  ELYSIEN";
+						FloatBtn.TextColor3 = Cc.Text2;
+						break;
+					end
+				end
+			end
+			break;
+		end
+		if (FlatIdent_7C675 == 0) then
+			if FloatBtn:GetAttribute("dragged") then
+				local FlatIdent_3E230 = 0;
+				while true do
+					if (FlatIdent_3E230 == 0) then
+						FloatBtn:SetAttribute("dragged", false);
+						return;
+					end
+				end
+			end
+			Main.Visible = not Main.Visible;
+			FlatIdent_7C675 = 1;
+		end
+	end
+end);
+task.spawn(function()
+	task.wait(1);
+	local last = loadMeta();
+	if last then
+		local FlatIdent_44ADB = 0;
+		local ok;
+		while true do
+			if (FlatIdent_44ADB == 0) then
+				ok = loadCfg(last);
+				if ok then
+					local FlatIdent_C8CE = 0;
+					while true do
+						if (FlatIdent_C8CE == 0) then
+							refreshAll();
+							S.RagebotStatusText = "Auto-loaded: " .. last;
+							break;
+						end
+					end
+				end
+				break;
+			end
+		end
+	end
+	if T.SkyboxOverride then
+		applySkybox(O.SelectedSky);
+	end
+	notifyUser("Elysien v2", "로드 완료 · Anti-Ban + Wallbang 활성", 4);
+end);
+LocalPlayer.CharacterAdded:Connect(function()
+	local FlatIdent_690E8 = 0;
+	while true do
+		if (FlatIdent_690E8 == 0) then
+			task.wait(0.5);
+			if T.Fly then
+				local FlatIdent_8C467 = 0;
+				while true do
+					if (0 == FlatIdent_8C467) then
+						startFly(false);
+						task.wait(0.1);
+						FlatIdent_8C467 = 1;
+					end
+					if (FlatIdent_8C467 == 1) then
+						startFly(true);
+						break;
+					end
+				end
+			end
+			FlatIdent_690E8 = 1;
+		end
+		if (FlatIdent_690E8 == 1) then
+			if T.Noclip then
+				local FlatIdent_8982C = 0;
+				while true do
+					if (FlatIdent_8982C == 1) then
+						startNoclip(true);
+						break;
+					end
+					if (FlatIdent_8982C == 0) then
+						startNoclip(false);
+						task.wait(0.1);
+						FlatIdent_8982C = 1;
+					end
+				end
+			end
+			if T.AutoRespawn then
+				startAR(false);
+				task.wait(0.1);
+				startAR(true);
+			end
+			FlatIdent_690E8 = 2;
+		end
+		if (FlatIdent_690E8 == 2) then
+			if T.UnlockMovement then
+				local FlatIdent_604DF = 0;
+				while true do
+					if (FlatIdent_604DF == 1) then
+						startUnlock(true);
+						break;
+					end
+					if (FlatIdent_604DF == 0) then
+						startUnlock(false);
+						task.wait(0.1);
+						FlatIdent_604DF = 1;
+					end
+				end
+			end
+			break;
+		end
+	end
+end);
+print("Elysien v2 not free")
